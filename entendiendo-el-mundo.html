@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entendiendo el Mundo de Hoy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ==================== PARTE DEL CSS ==================== */
+    :root {
+      --cream: #FDF6EC;
+      --warm-white: #FFFBF4;
+      --amber: #D4853A;
+      --amber-light: #F0A85A;
+      --amber-dark: #A8621E;
+      --forest: #3A6B4A;
+      --forest-light: #5A8A6A;
+      --navy: #2C3E6B;
+      --navy-light: #4A5E8A;
+      --text-dark: #1C1A16;
+      --text-mid: #3D3830;
+      --text-light: #6B6258;
+      --border: #E8D8C0;
+      --shadow-warm: rgba(180,120,50,0.15);
+      --shadow-deep: rgba(30,20,10,0.2);
+
+      --font-display: 'Lora', Georgia, serif;
+      --font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+
+      /* ACCESIBILIDAD */
+      --base-size: 20px;
+      --large-size: 26px;
+      --xlarge-size: 34px;
+      --huge-size: 48px;
+      --btn-size: 22px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: var(--base-size);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--text-dark);
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    /* ==================== BARRA DE HERRAMIENTAS ==================== */
+    #a11y-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    #a11y-bar .a11y-label {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+
+    .a11y-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .a11y-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 14px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .a11y-btn:hover { background: rgba(255,255,255,0.22); }
+    .a11y-btn.active { background: var(--amber); border-color: var(--amber); }
+
+    #read-aloud-btn {
+      background: var(--forest);
+      border-color: var(--forest-light);
+    }
+
+    /* ==================== SKIPPEAR ==================== */
+    .skip-link {
+      position: absolute;
+      top: -99px;
+      left: 0;
+      background: var(--amber);
+      color: #fff;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 18px;
+      z-index: 9999;
+      border-radius: 0 0 8px 0;
+    }
+    .skip-link:focus { top: 52px; }
+
+    /* ==================== HERO ==================== */
+    .site-header {
+      margin-top: 52px;
+      background: linear-gradient(160deg, #2C3E6B 0%, #1a2845 50%, #3A6B4A 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 70px 24px 60px;
+      text-align: center;
+    }
+
+    .site-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 20% 50%, rgba(212,133,58,0.18) 0%, transparent 55%),
+                        radial-gradient(circle at 80% 30%, rgba(90,138,106,0.15) 0%, transparent 50%);
+    }
+
+    .hero-icon {
+      font-size: 72px;
+      display: block;
+      margin-bottom: 12px;
+      position: relative;
+      animation: floatIcon 4s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .site-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: #fff;
+      position: relative;
+      line-height: 1.2;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+      margin-bottom: 16px;
+    }
+
+    .site-header .tagline {
+      font-size: clamp(1rem, 2.5vw, 1.35rem);
+      color: rgba(255,255,255,0.82);
+      max-width: 640px;
+      margin: 0 auto 30px;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-badge {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 30px;
+      padding: 6px 18px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ==================== BÚSQUEDA ==================== */
+    #search-section {
+      background: var(--warm-white);
+      border-bottom: 2px solid var(--border);
+      padding: 32px 24px;
+    }
+
+    .search-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .search-wrap label {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--text-mid);
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #search-input {
+      flex: 1;
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      padding: 16px 22px;
+      border: 2.5px solid var(--border);
+      border-radius: 50px;
+      background: #fff;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #search-input:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 4px rgba(212,133,58,0.15);
+    }
+    #search-input::placeholder { color: #b0a090; }
+
+    #search-btn {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 28px;
+      font-size: 1.1rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    #search-btn:hover { background: var(--amber-dark); transform: scale(1.04); }
+
+    #search-results {
+      margin-top: 18px;
+      text-align: left;
+    }
+
+    .search-result-item {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-result-item:hover {
+      border-color: var(--amber);
+      box-shadow: 0 4px 16px var(--shadow-warm);
+    }
+    .search-result-item strong { color: var(--amber-dark); font-family: var(--font-display); }
+    .search-result-item p { font-size: 0.9rem; color: var(--text-light); margin-top: 4px; }
+
+    /* ==================== DISEÑO PRINCIPAL ==================== */
+    .main-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* ==================== LOGIN ==================== */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,15,10,0.65);
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--warm-white);
+      border-radius: 20px;
+      padding: 44px 40px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      position: relative;
+      animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes modalIn {
+      from { transform: scale(0.85) translateY(30px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-box h2 {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .modal-box .modal-sub {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 28px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-mid);
+      margin-bottom: 7px;
+    }
+
+    .form-group input {
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      padding: 14px 18px;
+      border: 2.5px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 4px rgba(44,62,107,0.12);
+    }
+
+    .form-error {
+      color: #C0392B;
+      font-size: 0.85rem;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .password-wrap { position: relative; }
+    .toggle-pw {
+      position: absolute;
+      right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 1.3rem; color: var(--text-light);
+    }
+
+    .strength-bar {
+      height: 5px; border-radius: 4px;
+      background: #E0D6C8;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .strength-bar-fill {
+      height: 100%; border-radius: 4px;
+      width: 0%; transition: width 0.3s, background 0.3s;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { background: var(--navy-light); transform: translateY(-2px); }
+
+    .modal-switch {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.95rem;
+      color: var(--text-light);
+    }
+    .modal-switch button {
+      background: none; border: none; color: var(--amber-dark);
+      font-weight: 700; cursor: pointer; font-size: 0.95rem;
+      font-family: var(--font-body);
+      text-decoration: underline;
+    }
+
+    .close-modal {
+      position: absolute; top: 16px; right: 18px;
+      background: none; border: none; font-size: 1.6rem;
+      color: var(--text-light); cursor: pointer;
+    }
+    .close-modal:hover { color: var(--text-dark); }
+
+    /* ==================== AUTENTICACIÓN ==================== */
+    #auth-nav {
+      position: fixed;
+      top: 52px; right: 0;
+      z-index: 800;
+      display: flex;
+      gap: 0;
+      background: var(--warm-white);
+      border-left: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      border-radius: 0 0 0 12px;
+      overflow: hidden;
+    }
+
+    .auth-btn {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    #btn-login { background: var(--amber); color: #fff; }
+    #btn-login:hover { background: var(--amber-dark); }
+    #btn-register { background: var(--forest); color: #fff; }
+    #btn-register:hover { background: #2e5038; }
+
+    #user-menu {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+    }
+    #user-menu.visible { display: flex; }
+    #user-greeting { font-size: 0.9rem; font-weight: 600; color: var(--text-mid); }
+    #btn-logout {
+      background: none; border: 2px solid var(--border);
+      border-radius: 6px; padding: 5px 12px;
+      font-size: 0.85rem; color: var(--text-light);
+      cursor: pointer; font-family: var(--font-body);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #btn-logout:hover { border-color: #C0392B; color: #C0392B; }
+
+    /* ==================== CATEGORÍAS ==================== */
+    .category-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+      justify-content: center;
+    }
+
+    .cat-btn {
+      background: #fff;
+      border: 2.5px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 22px;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .cat-btn:hover, .cat-btn.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px var(--shadow-warm);
+    }
+
+    /* ==================== HEAD ==================== */
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: var(--navy);
+      margin-bottom: 28px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-heading span { font-size: 1.6rem; }
+
+    /* ==================== CARDS ==================== */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .topic-card {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+    .topic-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px var(--shadow-warm);
+      border-color: var(--amber);
+    }
+
+    .card-banner {
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 20px 22px 22px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 16px;
+    }
+
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 18px;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-start;
+    }
+    .card-cta:hover { background: var(--navy-light); }
+
+    /* ==================== DISEÑO DE ARTICULOS ==================== */
+    #article-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 950;
+      background: rgba(20,15,10,0.7);
+      align-items: flex-start;
+      justify-content: center;
+      padding: 80px 16px 40px;
+      overflow-y: auto;
+      backdrop-filter: blur(4px);
+    }
+    #article-modal.open { display: flex; }
+
+    .article-box {
+      background: var(--warm-white);
+      border-radius: 20px;
+      max-width: 700px;
+      width: 100%;
+      padding: 48px 44px;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .article-box .close-article {
+      position: absolute; top: 18px; right: 22px;
+      background: var(--border); border: none; border-radius: 50%;
+      width: 40px; height: 40px; font-size: 1.4rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-mid); transition: background 0.2s;
+    }
+    .article-box .close-article:hover { background: #ddd; }
+
+    .article-icon { font-size: 3.5rem; display: block; margin-bottom: 10px; }
+
+    .article-box h2 {
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .article-box .article-tag {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 18px;
+      display: block;
+    }
+    .article-box .article-content {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--text-mid);
+    }
+    .article-box .article-content h3 {
+      font-family: var(--font-display);
+      color: var(--navy);
+      font-size: 1.25rem;
+      margin: 24px 0 10px;
+    }
+    .article-box .article-content p { margin-bottom: 14px; }
+    .article-box .article-content .highlight {
+      background: rgba(212,133,58,0.12);
+      border-left: 4px solid var(--amber);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 18px 0;
+      font-size: 1rem;
+    }
+
+    .article-nav {
+      margin-top: 28px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .article-nav-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: #fff;
+      color: var(--text-mid);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .article-nav-btn:hover {
+      background: var(--amber); border-color: var(--amber); color: #fff;
+    }
+    #read-article-btn {
+      background: var(--forest); border-color: var(--forest); color: #fff;
+    }
+    #read-article-btn:hover { background: #2e5038; }
+
+    /* ==================== GLOSARIO ==================== */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+
+    .glos-item {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .glos-item:hover {
+      border-color: var(--forest);
+      box-shadow: 0 6px 20px rgba(58,107,74,0.12);
+    }
+    .glos-word {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--forest);
+      margin-bottom: 6px;
+    }
+    .glos-def {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    /* ==================== PASOS PARA HACER ==================== */
+    .steps-list { margin-bottom: 60px; }
+    .step-item {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 22px 24px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .step-item:hover { border-color: var(--navy); }
+    .step-num {
+      min-width: 50px; height: 50px;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-content h4 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--text-dark);
+      margin-bottom: 5px;
+    }
+    .step-content p { font-size: 0.92rem; color: var(--text-light); line-height: 1.65; }
+
+    /* ==================== FOOTER ==================== */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 36px 24px;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+    footer strong { color: #fff; }
+    footer a { color: var(--amber-light); }
+
+    /* ==================== NOTIFICACIONES ==================== */
+    #toast {
+      position: fixed;
+      bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--forest);
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      z-index: 2000;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ==================== TAMAÑOS DE LETRA ==================== */
+    body.text-lg { font-size: 24px; }
+    body.text-xl { font-size: 28px; }
+    body.high-contrast {
+      --cream: #000;
+      --warm-white: #111;
+      --border: #FFD700;
+      --text-dark: #FFFFFF;
+      --text-mid: #EEEEEE;
+      --text-light: #CCCCCC;
+    }
+
+    /* ==================== DISEÑO RESPONSIVO ==================== */
+    @media (max-width: 600px) {
+      .article-box { padding: 32px 22px; }
+      .modal-box { padding: 32px 22px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      #auth-nav { display: none; }
+      .a11y-label { display: none; }
+    }
+
+    /* ==================== PROCESO DE LECTURA ==================== */
+    #progress-bar {
+      position: fixed;
+      top: 52px; left: 0;
+      height: 4px;
+      background: var(--amber);
+      z-index: 999;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ==================== SECCIONS OCULTAS ==================== */
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Ir al contenido principal</a>
+<div id="progress-bar" aria-hidden="true"></div>
+
+<!-- ACCESIBILIDAD -->
+<div id="a11y-bar" role="toolbar" aria-label="Herramientas de accesibilidad">
+  <span class="a11y-label">♿ Accesibilidad</span>
+  <div class="a11y-controls">
+    <button class="a11y-btn" id="btn-text-normal" onclick="setTextSize('normal')" title="Texto normal">Aa Normal</button>
+    <button class="a11y-btn" id="btn-text-lg" onclick="setTextSize('lg')" title="Texto grande">Aa Grande</button>
+    <button class="a11y-btn" id="btn-text-xl" onclick="setTextSize('xl')" title="Texto muy grande">Aa Muy Grande</button>
+    <button class="a11y-btn" id="btn-contrast" onclick="toggleContrast()" title="Alto contraste">🌓 Alto Contraste</button>
+    <button class="a11y-btn" id="read-aloud-btn" onclick="readAloud()" title="Leer en voz alta">🔊 Leer en voz alta</button>
+    <button class="a11y-btn" id="stop-aloud-btn" onclick="stopAloud()" title="Detener lectura" style="display:none;">⏹ Detener</button>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN DE AUTENTICACIÓN -->
+<nav id="auth-nav" aria-label="Acceso de usuario">
+  <div id="login-btns">
+    <button class="auth-btn" id="btn-login" onclick="openModal('login')">🔐 Iniciar Sesión</button>
+    <button class="auth-btn" id="btn-register" onclick="openModal('register')">📝 Registrarse</button>
+  </div>
+  <div id="user-menu">
+    <span id="user-greeting">👋 Hola, <strong id="user-name-display"></strong></span>
+    <button id="btn-logout" onclick="logout()">Salir</button>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="site-header" role="banner">
+  <span class="hero-icon" aria-hidden="true">🌍</span>
+  <h1>Entendiendo el Mundo de Hoy</h1>
+  <p class="tagline">Un espacio pensado con cariño para personas mayores que quieren aprender sobre la vida moderna, sin complicaciones y con paciencia.</p>
+  <div class="hero-badges">
+    <span class="hero-badge">✅ Fácil de leer</span>
+    <span class="hero-badge">🔊 Lectura en voz alta</span>
+    <span class="hero-badge">🔡 Texto ajustable</span>
+    <span class="hero-badge">📱 Funciona en celular</span>
+  </div>
+</header>
+
+<!-- BÚSQUEDA -->
+<section id="search-section" aria-label="Buscar temas">
+  <div class="search-wrap">
+    <label for="search-input">¿Sobre qué tema le gustaría aprender hoy?</label>
+    <div class="search-row" role="search">
+      <input type="search" id="search-input" placeholder="Ej: ¿Qué es WhatsApp? ¿Qué significa LGBT?" aria-label="Buscar temas" autocomplete="off"/>
+      <button id="search-btn" onclick="doSearch()" aria-label="Buscar">🔍 Buscar</button>
+    </div>
+    <div id="search-results" role="region" aria-live="polite" aria-label="Resultados de búsqueda"></div>
+  </div>
+</section>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main id="main-content" class="main-wrap">
+
+  <!-- NAVEGACIÓN POR CATEGORÍAS -->
+  <nav class="category-nav" aria-label="Categorías de temas">
+    <button class="cat-btn active" onclick="showCategory('todos')">🏠 Todos los temas</button>
+    <button class="cat-btn" onclick="showCategory('tecnologia')">💻 Tecnología</button>
+    <button class="cat-btn" onclick="showCategory('politica')">🏛️ Política</button>
+    <button class="cat-btn" onclick="showCategory('sociedad')">🌈 Sociedad</button>
+    <button class="cat-btn" onclick="showCategory('jovenes')">🗣️ Lenguaje joven</button>
+    <button class="cat-btn" onclick="showCategory('tutoriales')">📱 Tutoriales</button>
+    <button class="cat-btn" onclick="showCategory('ia')">🤖 Inteligencia Artificial</button>
+  </nav>
+
+  <!-- ====== SECCIÓN: TODOS ====== -->
+  <section class="content-section active" id="sec-todos" aria-label="Todos los temas destacados">
+    <h2 class="section-heading"><span>⭐</span> Temas más populares</h2>
+    <div class="cards-grid" id="cards-todos"></div>
+  </section>
+
+  <!-- ====== SECCIÓN: TECNOLOGIA ====== -->
+  <section class="content-section" id="sec-tecnologia" aria-label="Tecnología">
+    <h2 class="section-heading"><span>💻</span> Tecnología para todos</h2>
+    <div class="cards-grid" id="cards-tecnologia"></div>
+  </section>
+
+  <!-- ====== SECCIÓN: POLITICA ====== -->
+  <section class="content-section" id="sec-politica" aria-label="Política">
+    <h2 class="section-heading"><span>🏛️</span> Política actual explicada con sencillez</h2>
+    <div class="cards-grid" id="cards-politica"></div>
+  </section>
+
+  <!-- ====== SECCIÓN: SOCIEDAD ====== -->
+  <section class="content-section" id="sec-sociedad" aria-label="Sociedad">
+    <h2 class="section-heading"><span>🌈</span> Sociedad y diversidad</h2>
+    <div class="cards-grid" id="cards-sociedad"></div>
+  </section>
+
+  <!-- ====== SECCIÓN: JOVENES ====== -->
+  <section class="content-section" id="sec-jovenes" aria-label="Lenguaje joven">
+    <h2 class="section-heading"><span>🗣️</span> ¿Qué están diciendo los jóvenes?</h2>
+    <p style="margin-bottom:28px;color:var(--text-light);font-size:1rem;">Un pequeño diccionario de palabras y frases que los jóvenes usan hoy. ¡Sin misterios!</p>
+    <div class="glossary-grid" id="glossary-grid"></div>
+  </section>
+
+  <!-- ====== SECCIÓN: TUTORIALES ====== -->
+  <section class="content-section" id="sec-tutoriales" aria-label="Tutoriales paso a paso">
+    <h2 class="section-heading"><span>📱</span> Cómo usar el celular y las aplicaciones</h2>
+    <p style="margin-bottom:28px;color:var(--text-light);font-size:1rem;">Pasos claros y sencillos, como si alguien le estuviera explicando en persona.</p>
+    <div id="tutorial-list"></div>
+  </section>
+
+  <!-- ====== SECCIÓN: IA ====== -->
+  <section class="content-section" id="sec-ia" aria-label="Inteligencia Artificial">
+    <h2 class="section-heading"><span>🤖</span> Inteligencia Artificial: ¿qué es y para qué sirve?</h2>
+    <div class="cards-grid" id="cards-ia"></div>
+  </section>
+
+</main>
+
+<!-- ARTICULOS -->
+<div id="article-modal" role="dialog" aria-modal="true" aria-labelledby="article-title">
+  <div class="article-box">
+    <button class="close-article" onclick="closeArticle()" aria-label="Cerrar artículo">✕</button>
+    <span class="article-icon" id="article-icon" aria-hidden="true"></span>
+    <span class="article-tag" id="article-tag"></span>
+    <h2 id="article-title"></h2>
+    <div class="article-content" id="article-body"></div>
+    <div class="article-nav">
+      <button class="article-nav-btn" id="read-article-btn" onclick="readArticle()">🔊 Leer en voz alta</button>
+      <button class="article-nav-btn" onclick="closeArticle()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN/REGISTRO -->
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <button class="close-modal" onclick="closeModal()" aria-label="Cerrar ventana">✕</button>
+    <h2 id="modal-title">Iniciar Sesión</h2>
+    <p class="modal-sub" id="modal-sub">Guarde su progreso y sus temas favoritos.</p>
+
+    <div id="login-form-wrap">
+      <div class="form-group">
+        <label for="login-email">Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="ejemplo@correo.com" autocomplete="email"/>
+        <p class="form-error" id="err-login-email">Por favor ingrese un correo válido.</p>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="login-password" placeholder="Su contraseña" autocomplete="current-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePw('login-password', this)" aria-label="Mostrar contraseña">👁</button>
+        </div>
+        <p class="form-error" id="err-login-pw">Ingrese su contraseña.</p>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar →</button>
+      <div class="modal-switch">¿No tiene cuenta? <button onclick="switchModal('register')">Regístrese aquí</button></div>
+    </div>
+
+    <div id="register-form-wrap" style="display:none;">
+      <div class="form-group">
+        <label for="reg-name">Su nombre</label>
+        <input type="text" id="reg-name" placeholder="Ej: María Guadalupe" autocomplete="name"/>
+        <p class="form-error" id="err-reg-name">Por favor ingrese su nombre.</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="ejemplo@correo.com" autocomplete="email"/>
+        <p class="form-error" id="err-reg-email">Por favor ingrese un correo válido.</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Crear contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres" oninput="checkStrength(this.value)" autocomplete="new-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePw('reg-password', this)" aria-label="Mostrar contraseña">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-bar-fill" id="strength-fill"></div></div>
+        <p id="strength-label" style="font-size:0.82rem;margin-top:4px;color:var(--text-light)"></p>
+        <p class="form-error" id="err-reg-pw">La contraseña debe tener al menos 8 caracteres.</p>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Crear mi cuenta →</button>
+      <div class="modal-switch">¿Ya tiene cuenta? <button onclick="switchModal('login')">Inicie sesión aquí</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICACIONES -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- FOOTER -->
+<footer role="contentinfo">
+  <p><strong>🌍 Entendiendo el Mundo de Hoy</strong></p>
+  <p>Un proyecto pensado con amor para personas mayores.</p>
+  <p style="margin-top:14px;font-size:0.8rem;">© 2026</p>
+</footer>
+
+<script>
+/* ============================================================
+   ARTICULOS
+============================================================ */
+const topics = [
+  /* TECNOLOGIA */
+  {
+    id: 't1', cat: 'tecnologia', icon: '📱',
+    tag: 'Tecnología', bannerBg: 'linear-gradient(135deg,#2C3E6B,#4A5E8A)',
+    title: '¿Qué es un celular inteligente?',
+    desc: 'Un teléfono inteligente es mucho más que solo llamar. Aprenda qué puede hacer con él.',
+    content: `
+      <p>Un <strong>celular inteligente</strong> (o "smartphone") es como tener en su bolsillo una cámara, un teléfono, una enciclopedia, un banco y mucho más, todo al mismo tiempo.</p>
+      <div class="highlight">💡 <strong>En palabras sencillas:</strong> Es un pequeño computador que cabe en la mano y que también puede hacer llamadas.</div>
+      <h3>¿Para qué sirve?</h3>
+      <p>Con un celular inteligente usted puede: llamar y enviar mensajes a sus familiares, tomar fotos y videos, ver recetas de cocina, pagar cuentas, leer noticias y mucho, mucho más.</p>
+      <h3>¿Es difícil de usar?</h3>
+      <p>Al principio puede parecer complicado, pero con un poco de práctica se vuelve muy fácil. La pantalla es sensible al tacto: solo toque con el dedo lo que quiera hacer, ¡como señalar con el dedo!</p>
+      <div class="highlight">👆 <strong>Recuerde:</strong> Para abrir algo, solo tóquelo una vez con el dedo. Para volver atrás, busque una flecha ← o un botón que diga "Atrás".</div>
+    `
+  },
+  {
+    id: 't2', cat: 'tecnologia', icon: '🌐',
+    tag: 'Tecnología', bannerBg: 'linear-gradient(135deg,#3A6B4A,#5A8A6A)',
+    title: '¿Qué es el internet?',
+    desc: 'El internet conecta millones de computadoras en el mundo. Aquí se lo explicamos de forma muy simple.',
+    content: `
+      <p>El <strong>internet</strong> es como una red gigante que conecta computadoras, celulares y otros aparatos de todo el mundo. Es parecido a una red de carreteras, pero en lugar de carros, viajan información y mensajes.</p>
+      <div class="highlight">📬 <strong>Ejemplo:</strong> Cuando usted le manda un mensaje a su nieto por WhatsApp, ese mensaje viaja por el internet hasta llegar al celular de su nieto, ¡en menos de un segundo!</div>
+      <h3>¿Para qué se usa el internet?</h3>
+      <p>Para buscar información (como en una biblioteca enorme), ver videos y películas, hablar con familiares que viven lejos, leer noticias del periódico, y hacer pagos desde casa.</p>
+      <h3>¿Cómo me conecto?</h3>
+      <p>Puede conectarse usando el <strong>WiFi</strong> de su casa (la señal inalámbrica de su router o "cajita de internet") o usando los <strong>datos</strong> de su plan telefónico. Cuando el símbolo de WiFi 📶 aparece en su celular, está conectado.</p>
+    `
+  },
+  {
+    id: 't3', cat: 'tecnologia', icon: '💻',
+    tag: 'Tecnología', bannerBg: 'linear-gradient(135deg,#6B3A3A,#8A5A5A)',
+    title: '¿Qué es una computadora?',
+    desc: 'Aprenda qué es una computadora, sus partes y para qué sirve cada cosa.',
+    content: `
+      <p>Una <strong>computadora</strong> (o PC) es una máquina electrónica que puede hacer muchas cosas: escribir cartas, guardar fotos, ver videos, conectarse al internet y mucho más.</p>
+      <h3>Sus partes principales son:</h3>
+      <p><strong>Pantalla (monitor):</strong> Es donde se ve todo, como un televisor.</p>
+      <p><strong>Teclado:</strong> Tiene letras y números para escribir, igual que una máquina de escribir pero más moderna.</p>
+      <p><strong>Ratón (mouse):</strong> Es un pequeño aparato que mueve una flechita en la pantalla. Con él puede señalar y seleccionar cosas.</p>
+      <p><strong>Torre o CPU:</strong> Es la "caja" que tiene el cerebro de la computadora.</p>
+      <div class="highlight">🖱️ <strong>Para usar el ratón:</strong> Deslícelo sobre la mesa y la flechita en pantalla se moverá. Un "clic" es apretar el botón izquierdo una vez. Un "doble clic" es apretarlo dos veces rápido para abrir algo.</div>
+    `
+  },
+
+  /* IA */
+  {
+    id: 'ia1', cat: 'ia', icon: '🤖',
+    tag: 'Inteligencia Artificial', bannerBg: 'linear-gradient(135deg,#2C3E6B,#6B2C5E)',
+    title: '¿Qué es la Inteligencia Artificial?',
+    desc: 'No es ciencia ficción ni robots peligrosos. Es una herramienta que ya usamos todos los días.',
+    content: `
+      <p>La <strong>Inteligencia Artificial</strong> (IA) es la capacidad que tienen algunas computadoras y programas para aprender, pensar y responder preguntas casi como lo haría una persona.</p>
+      <div class="highlight">🧠 <strong>Comparación sencilla:</strong> Imagine que tiene un asistente muy estudioso que leyó millones de libros y puede responder casi cualquier pregunta. Eso es la IA.</div>
+      <h3>¿Ya la he usado sin saberlo?</h3>
+      <p>¡Seguramente sí! Cuando habla con Siri o con el asistente de su celular, cuando el correo detecta mensajes de spam (correos basura), o cuando Netflix le sugiere una película que le podría gustar, todo eso es Inteligencia Artificial.</p>
+      <h3>¿Es peligrosa?</h3>
+      <p>Las herramientas de IA que usamos hoy son seguras y útiles. Son como calculadoras muy avanzadas: hacen lo que les pedimos y nos ayudan, pero no tienen sentimientos ni malas intenciones.</p>
+    `
+  },
+  {
+    id: 'ia2', cat: 'ia', icon: '💬',
+    tag: 'Inteligencia Artificial', bannerBg: 'linear-gradient(135deg,#3A6B65,#5A8A85)',
+    title: 'Cómo hablar con ChatGPT',
+    desc: 'ChatGPT es como tener un asistente que puede responder preguntas sobre casi cualquier tema.',
+    content: `
+      <p><strong>ChatGPT</strong> es un programa de Inteligencia Artificial con el que puede tener una conversación escrita. Usted le escribe una pregunta y él le responde.</p>
+      <h3>¿Cómo se usa?</h3>
+      <p>1. Abra el navegador de su celular o computadora.</p>
+      <p>2. Vaya a la página: <strong>chat.openai.com</strong></p>
+      <p>3. Escriba su pregunta en la cajita de texto, ¡igual que un mensaje de WhatsApp!</p>
+      <p>4. Apriete el botón de enviar y espere la respuesta.</p>
+      <div class="highlight">❓ <strong>Ejemplos de preguntas que puede hacerle:</strong> "¿Cuál es una receta fácil de tamales?", "¿Cómo se llama el presidente de México?", "Explícame qué es el WiFi de forma simple".</div>
+      <h3>¿Es gratis?</h3>
+      <p>Sí, tiene una versión gratuita que funciona muy bien para la mayoría de preguntas.</p>
+    `
+  },
+
+  /* POLITICA */
+  {
+    id: 'p1', cat: 'politica', icon: '🏛️',
+    tag: 'Política', bannerBg: 'linear-gradient(135deg,#4A3A6B,#6B5A3A)',
+    title: '¿Qué es la democracia?',
+    desc: 'La palabra que escucha mucho en las noticias, explicada de forma clara y honesta.',
+    content: `
+      <p>La <strong>democracia</strong> es un sistema de gobierno donde las personas eligen a sus líderes mediante el voto. La palabra viene del griego y significa "gobierno del pueblo".</p>
+      <div class="highlight">🗳️ <strong>En sencillo:</strong> En una democracia, los ciudadanos eligen quién los va a gobernar. Si no les gusta cómo los gobiernan, en las siguientes elecciones pueden elegir a alguien diferente.</div>
+      <h3>¿Cómo funciona en México?</h3>
+      <p>En México elegimos al <strong>Presidente</strong> (jefe del gobierno federal), a los <strong>senadores</strong> y <strong>diputados</strong> (quienes hacen las leyes), y a los <strong>gobernadores</strong> y <strong>presidentes municipales</strong> de cada estado y ciudad.</p>
+      <h3>¿Por qué es importante votar?</h3>
+      <p>Cada voto cuenta. Cuando más personas votan, el resultado refleja mejor lo que quiere la mayoría de la gente. Es un derecho y una responsabilidad que muchas personas en el mundo no tienen.</p>
+    `
+  },
+  {
+    id: 'p2', cat: 'politica', icon: '📰',
+    tag: 'Política', bannerBg: 'linear-gradient(135deg,#6B3A4A,#3A4A6B)',
+    title: 'Las noticias falsas (fake news)',
+    desc: 'Aprenda a identificar noticias falsas que circulan por WhatsApp y redes sociales.',
+    content: `
+      <p>Las <strong>noticias falsas</strong> (o "fake news") son información inventada o exagerada que se hace pasar por noticia real. Hoy en día circulan mucho por WhatsApp y Facebook.</p>
+      <h3>¿Cómo reconocer una noticia falsa?</h3>
+      <p><strong>Desconfíe si:</strong> el título es muy dramático o asustador, dice "¡Urgente! ¡Compártalo!" o "lo que los medios no quieren que sepa", no dice quién lo escribió ni cuándo, viene de una página desconocida.</p>
+      <div class="highlight">✅ <strong>Consejo de oro:</strong> Antes de compartir algo, búsquelo en Google o en un periódico conocido. Si es verdad, otros medios también lo dirán.</div>
+      <h3>Páginas confiables para informarse</h3>
+      <p>En México puede consultar: El Universal, Reforma, Milenio, El Financiero. Para noticias internacionales: BBC Mundo, Reuters en español.</p>
+    `
+  },
+  {
+    id: 'p3', cat: 'politica', icon: '🌍',
+    tag: 'Política', bannerBg: 'linear-gradient(135deg,#2C5A3A,#5A2C6B)',
+    title: '¿Qué es el cambio climático?',
+    desc: 'Por qué el clima está cambiando, qué lo causa y qué podemos hacer.',
+    content: `
+      <p>El <strong>cambio climático</strong> se refiere a los cambios en el clima de la Tierra que ocurren más rápido de lo normal debido a las actividades humanas.</p>
+      <div class="highlight">🌡️ <strong>Comparación:</strong> Imagínese que la Tierra tiene una cobija (la atmósfera). Cuando quemamos petróleo y gas, esa cobija se hace más gruesa, la Tierra se calienta más y el clima cambia.</div>
+      <h3>¿Por qué importa?</h3>
+      <p>Porque provoca: lluvias más intensas e inundaciones, sequías más largas, huracanes más fuertes, y el hielo de los polos se derrite, subiendo el nivel del mar.</p>
+      <h3>¿Qué podemos hacer?</h3>
+      <p>Ahorrar agua y electricidad, usar menos el carro cuando sea posible, no desperdiciar comida, y plantar árboles. Cada pequeña acción ayuda.</p>
+    `
+  },
+
+  /* SOCIEDAD */
+  {
+    id: 's1', cat: 'sociedad', icon: '🌈',
+    tag: 'Sociedad', bannerBg: 'linear-gradient(135deg,#D4853A,#6B3A6B)',
+    title: '¿Qué es la comunidad LGBT+?',
+    desc: 'Una explicación respetuosa y clara sobre qué significan estas siglas y quiénes forman esta comunidad.',
+    content: `
+      <p>La comunidad <strong>LGBT+</strong> es un grupo de personas que comparten algo en común: sus sentimientos amorosos o su identidad no son los que la sociedad tradicional consideraba "lo normal". Las siglas significan:</p>
+      <p><strong>L</strong> = Lesbianas (mujeres a quienes les gustan las mujeres)</p>
+      <p><strong>G</strong> = Gais (hombres a quienes les gustan los hombres)</p>
+      <p><strong>B</strong> = Bisexuales (personas a quienes les pueden gustar tanto hombres como mujeres)</p>
+      <p><strong>T</strong> = Transgénero (personas cuya identidad de género no coincide con el sexo con que nacieron)</p>
+      <p><strong>+</strong> = Incluye a más personas con otras identidades</p>
+      <div class="highlight">❤️ <strong>Lo más importante:</strong> Son personas como usted y como yo, con familias, trabajos, sueños y sentimientos. Merecen el mismo respeto y dignidad que cualquier ser humano.</div>
+      <h3>¿Por qué se habla tanto de esto hoy?</h3>
+      <p>Porque durante muchos años estas personas fueron discriminadas, y hoy luchan por tener los mismos derechos que todos los demás ciudadanos.</p>
+    `
+  },
+  {
+    id: 's2', cat: 'sociedad', icon: '🤝',
+    tag: 'Sociedad', bannerBg: 'linear-gradient(135deg,#3A6B4A,#6B6B3A)',
+    title: '¿Qué es el feminismo?',
+    desc: 'Una explicación honesta sobre qué es y qué no es el feminismo.',
+    content: `
+      <p>El <strong>feminismo</strong> es el movimiento que busca la igualdad de derechos entre hombres y mujeres. No es "que las mujeres sean superiores", sino que sean tratadas con la misma justicia y oportunidades.</p>
+      <div class="highlight">⚖️ <strong>En sencillo:</strong> El feminismo dice que una mujer y un hombre que hacen el mismo trabajo merecen el mismo salario, y que ninguna persona merece ser maltratada por su género.</div>
+      <h3>¿No siempre fue así?</h3>
+      <p>No. Hace apenas 100 años, las mujeres en muchos países no podían votar, estudiar en la universidad ni tener cuentas bancarias propias. Las mujeres que lucharon por cambiar eso fueron las primeras feministas.</p>
+    `
+  },
+  {
+    id: 's3', cat: 'sociedad', icon: '🧠',
+    tag: 'Sociedad', bannerBg: 'linear-gradient(135deg,#3A4A6B,#6B3A3A)',
+    title: 'Salud mental: ¿por qué se habla tanto de ella?',
+    desc: 'Entender la ansiedad, la depresión y por qué cuidar la mente es tan importante como cuidar el cuerpo.',
+    content: `
+      <p>La <strong>salud mental</strong> es el bienestar de nuestra mente y emociones. Igual que el cuerpo puede enfermarse, la mente también puede necesitar ayuda.</p>
+      <h3>¿Qué es la depresión?</h3>
+      <p>No es simplemente estar triste. Es una enfermedad en la que una persona se siente muy mal durante semanas o meses: sin energía, sin ganas de hacer nada, a veces con ganas de llorar sin saber por qué. Tiene tratamiento médico.</p>
+      <h3>¿Qué es la ansiedad?</h3>
+      <p>Es una preocupación muy intensa y constante que no desaparece, a veces acompañada de palpitaciones, sudoración o sensación de ahogo. También tiene tratamiento.</p>
+      <div class="highlight">💙 <strong>Recuerde:</strong> Pedir ayuda psicológica no es debilidad. Es tan normal como ir al médico cuando nos duele la rodilla. Si alguien de su familia lo necesita, apóyelo sin juzgarlo.</div>
+    `
+  },
+
+  /* TUTORIALES */
+  {
+    id: 'tu1', cat: 'tutoriales', icon: '💬',
+    tag: 'Tutorial', bannerBg: 'linear-gradient(135deg,#25D366,#128C7E)',
+    title: 'Cómo usar WhatsApp',
+    desc: 'Aprenda a enviar mensajes, fotos, audios y llamar por WhatsApp paso a paso.',
+    content: `
+      <h3>¿Qué es WhatsApp?</h3>
+      <p>WhatsApp es una aplicación gratuita para enviar mensajes, fotos, videos y hacer llamadas a través del internet. Es la forma más popular de comunicarse en México.</p>
+      <h3>Cómo enviar un mensaje de texto:</h3>
+      <p><strong>Paso 1:</strong> Toque el ícono verde de WhatsApp en su celular.</p>
+      <p><strong>Paso 2:</strong> Toque el nombre de la persona con quien quiere hablar.</p>
+      <p><strong>Paso 3:</strong> Toque la cajita que dice "Mensaje" en la parte de abajo.</p>
+      <p><strong>Paso 4:</strong> Escriba su mensaje con el teclado.</p>
+      <p><strong>Paso 5:</strong> Toque el botón verde de enviar (parece una flecha ➤).</p>
+      <div class="highlight">🎤 <strong>¿No quiere escribir?</strong> Mantenga apretado el ícono del micrófono 🎙️ y hable. Al soltar el dedo, su voz se envía como mensaje de audio.</div>
+    `
+  },
+  {
+    id: 'tu2', cat: 'tutoriales', icon: '📘',
+    tag: 'Tutorial', bannerBg: 'linear-gradient(135deg,#1877F2,#0D5BBF)',
+    title: 'Cómo usar Facebook',
+    desc: 'Conéctese con amigos y familia, vea fotos y comparta sus momentos especiales.',
+    content: `
+      <h3>¿Qué es Facebook?</h3>
+      <p>Facebook es una red social donde puede ver fotos y publicaciones de sus amigos y familiares, compartir sus propias fotos, y mandarles mensajes.</p>
+      <h3>Cómo ver las publicaciones de sus amigos:</h3>
+      <p><strong>Paso 1:</strong> Abra Facebook en su celular.</p>
+      <p><strong>Paso 2:</strong> Verá una lista de publicaciones (el "muro" o "feed"). Solo deslice el dedo hacia arriba para ver más.</p>
+      <p><strong>Paso 3:</strong> Si quiere dar "Me gusta" a algo, toque el pulgar 👍 que aparece debajo de la publicación.</p>
+      <div class="highlight">⚠️ <strong>Consejo de seguridad:</strong> No acepte solicitudes de amistad de personas que no conoce. No comparta su número de teléfono, dirección o contraseñas en Facebook.</div>
+    `
+  },
+  {
+    id: 'tu3', cat: 'tutoriales', icon: '📸',
+    tag: 'Tutorial', bannerBg: 'linear-gradient(135deg,#E1306C,#833AB4)',
+    title: 'Cómo usar Instagram',
+    desc: 'Ver y compartir fotos y videos con sus seres queridos en Instagram.',
+    content: `
+      <h3>¿Qué es Instagram?</h3>
+      <p>Instagram es una red social enfocada en fotos y videos. Es muy popular entre jóvenes, pero cada vez más personas de todas las edades la usan para compartir momentos de su vida.</p>
+      <h3>Cómo ver las fotos de sus familiares:</h3>
+      <p><strong>Paso 1:</strong> Abra Instagram y verá fotos en su pantalla.</p>
+      <p><strong>Paso 2:</strong> Deslice el dedo hacia arriba para ver más fotos.</p>
+      <p><strong>Paso 3:</strong> Para dar "Me gusta" a una foto, toque dos veces la foto rápidamente, o toque el corazoncito ❤️ debajo.</p>
+      <h3>Cómo subir una foto:</h3>
+      <p>Toque el símbolo + en la parte de abajo, elija la foto de su galería, y toque "Siguiente" y luego "Compartir".</p>
+    `
+  },
+];
+
+/* ============================================================
+   GLOSARIO
+============================================================ */
+const glossary = [
+  { word: "Aesthetic", def: "Perteneciente al concepto de estética, que se refiere a la apariencia visual agradable." },
+  { word: "Evento canónico", def: "Situación que te marca y no se puede evitar, necesaria para el desarrollo personal." },
+  { word: "Bro", def: "Forma informal de llamar a un amigo, similar a 'hermano'." },
+  { word: "Vibras", def: "La energía o el ambiente que da una persona o lugar. Ej: 'Esta persona da buenas vibras.'" },
+  { word: "Meme", def: "Una imagen cómica con texto que se comparte en internet para hacer reír." },
+  { word: "Funar", def: "Escrachar, denunciar públicamente a alguien en redes sociales." },
+  { word: "Streaming", def: "Ver películas, series o escuchar música directamente por internet, sin descargar nada." },
+  { word: "Selfie", def: "Una fotografía que uno mismo se toma con la cámara frontal del celular." },
+  { word: "Hashtag (#)", def: "Un símbolo # seguido de una palabra, usado para clasificar temas en redes sociales." },
+  { word: "Trollear", def: "Molestar o provocar a alguien intencionalmente en internet para hacerle enojar." },
+  { word: "Hype", def: "Un gran entusiasmo o interés por algo, especialmente en redes sociales." },
+  { word: "Cringe", def: "Algo que da vergüenza ajena o que resulta incómodo de ver." },
+  { word: "Random", def: "Algo que es inesperado, sin contexto, que parece estar fuera de lugar." },
+  { word: "Influencer", def: "Persona que tiene muchos seguidores en redes sociales y que influye en las opiniones o compras de otros." },
+  { word: "Lore", def: "El conjunto de historias, mitos o información que rodea a un personaje, lugar o universo ficticio." },
+  { word: "Stalkear", def: "Investigar o seguir a alguien en redes sociales de manera obsesiva o sin que se dé cuenta." },
+  { word: "POV", def: "Significa 'Point of View' (Punto de Vista). Se usa para describir una situación desde la perspectiva de alguien." },
+];
+
+/* ============================================================
+   TUTORIALES
+============================================================ */
+const tutorials = [
+  {
+    icon: '📱', title: 'Cómo encender y usar un celular por primera vez',
+    steps: [
+      { title: 'Encienda el celular', desc: 'Mantenga apretado el botón de encendido (generalmente en el lado derecho) durante 2-3 segundos hasta que la pantalla se ilumine.' },
+      { title: 'Desbloquee la pantalla', desc: 'Deslice el dedo hacia arriba desde la parte inferior de la pantalla, o ingrese su PIN (número secreto de 4 a 6 dígitos).' },
+      { title: 'Encuentre sus aplicaciones', desc: 'Las aplicaciones (apps) son iconitos en la pantalla. Tóquelas una vez para abrirlas.' },
+      { title: 'Suba y baje el volumen', desc: 'Los botones de volumen están en el lado izquierdo del celular. El de arriba sube, el de abajo baja.' },
+      { title: 'Regrese a la pantalla principal', desc: 'Busque un botón redondo o cuadrado en la parte de abajo de la pantalla para regresar al inicio.' },
+    ]
+  },
+  {
+    icon: '🛜', title: 'Cómo conectarse al WiFi',
+    steps: [
+      { title: 'Abra los Ajustes', desc: 'Busque el ícono de engranaje ⚙️ o el que dice "Ajustes" o "Configuración" y tóquelo.' },
+      { title: 'Busque "WiFi" o "Red inalámbrica"', desc: 'Toque esa opción. Verá una lista de redes disponibles.' },
+      { title: 'Elija su red', desc: 'Toque el nombre de la red WiFi de su casa (generalmente viene en la cajita del internet).' },
+      { title: 'Ingrese la contraseña', desc: 'Escriba la contraseña del WiFi (también viene en la cajita). Puede ser una mezcla de letras y números.' },
+      { title: 'Conéctese', desc: 'Toque "Conectar". Si la contraseña es correcta, verá el símbolo 📶 en la parte superior de la pantalla.' },
+    ]
+  },
+  {
+    icon: '💬', title: 'Cómo enviar un mensaje de texto',
+    steps: [
+      { title: 'Abra la aplicación de mensajes', desc: 'Busque el ícono que parece un sobre o una burbuja de chat y tóquelo.' },
+      { title: 'Inicie un nuevo mensaje', desc: 'Toque el botón que dice "Nuevo mensaje" o tiene un símbolo +.' },
+      { title: 'Escriba el número o nombre del destinatario', desc: 'En el campo "Para", escriba el número de teléfono o el nombre de la persona a quien quiere enviar el mensaje.' },
+      { title: 'Escriba su mensaje', desc: 'Toque la cajita que dice "Mensaje" y escriba lo que quiere decir.' },
+      { title: 'Envíe el mensaje', desc: 'Toque el botón de enviar (generalmente una flecha ➤) para mandar su mensaje.' },
+    ]
+  },
+  {
+    icon: '📸', title: 'Cómo tomar una foto con el celular',
+    steps: [
+      { title: 'Abra la aplicación de cámara', desc: 'Busque el ícono que parece una cámara fotográfica y tóquelo.' },
+      { title: 'Enfoque su objetivo', desc: 'Apunte con la cámara hacia lo que quiere fotografiar. Puede tocar la pantalla para enfocar un punto específico.' },
+      { title: 'Tome la foto', desc: 'Toque el botón circular grande en la parte inferior de la pantalla para tomar la foto.' },
+      { title: 'Revise su foto', desc: 'Después de tomarla, toque el ícono de la miniatura (generalmente en la esquina) para ver su foto.' },
+      { title: 'Comparta su foto', desc: 'Si quiere compartirla, toque el ícono de compartir (parece tres puntos conectados) y elija cómo enviarla.' },
+    ]
+  },
+  {
+    icon: '📞', title: 'Cómo hacer una llamada telefónica',
+    steps: [
+      { title: 'Abra la aplicación de teléfono', desc: 'Busque el ícono que parece un teléfono y tóquelo.' },
+      { title: 'Marque el número', desc: 'En el teclado numérico, escriba el número de teléfono al que desea llamar.' },
+      { title: 'Inicie la llamada', desc: 'Toque el botón verde de llamar (generalmente con un símbolo de teléfono) para iniciar la llamada.' },
+      { title: 'Hable y escuche', desc: 'Cuando la otra persona conteste, podrá hablar y escuchar a través del altavoz del celular.' },
+      { title: 'Cuelgue la llamada', desc: 'Cuando termine, toque el botón rojo de colgar para finalizar la llamada.' },
+    ]
+  },
+  {
+    icon: '📱', title: 'Cómo actualizar el sistema operativo de su celular',
+    steps: [
+      { title: 'Abra los Ajustes', desc: 'Busque el ícono de engranaje ⚙️ o el que dice "Ajustes" o "Configuración" y tóquelo.' },
+      { title: 'Busque "Acerca del teléfono" o "Información del dispositivo"', desc: 'Toque esa opción, generalmente está al final de la lista.' },
+      { title: 'Toque "Actualización de software"', desc: 'Aquí podrá ver si hay una actualización disponible para su celular.' },
+      { title: 'Descargue e instale la actualización', desc: 'Si hay una actualización, toque "Descargar e instalar". Asegúrese de estar conectado a WiFi y tener suficiente batería.' },
+      { title: 'Espere a que se complete', desc: 'El proceso puede tardar varios minutos. No apague su celular durante la actualización.' },
+    ]
+  }
+];
+
+/* ============================================================
+   CARDS
+============================================================ */
+function buildCards(containerId, items) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = items.map(t => `
+    <article class="topic-card" onclick="openArticle('${t.id}')" tabindex="0" aria-label="Leer: ${t.title}" onkeydown="if(event.key==='Enter') openArticle('${t.id}')">
+      <div class="card-banner" style="background:${t.bannerBg}">
+        <span style="filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3))">${t.icon}</span>
+      </div>
+      <div class="card-body">
+        <p class="card-tag">${t.tag}</p>
+        <h3 class="card-title">${t.title}</h3>
+        <p class="card-desc">${t.desc}</p>
+        <button class="card-cta">Leer más →</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function buildGlossary() {
+  const container = document.getElementById('glossary-grid');
+  container.innerHTML = glossary.map(g => `
+    <div class="glos-item">
+      <p class="glos-word">${g.word}</p>
+      <p class="glos-def">${g.def}</p>
+    </div>
+  `).join('');
+}
+
+function buildTutorials() {
+  const container = document.getElementById('tutorial-list');
+  container.innerHTML = tutorials.map(t => `
+    <div style="margin-bottom:40px;">
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;color:var(--navy);margin-bottom:18px;">${t.icon} ${t.title}</h3>
+      <div class="steps-list">
+        ${t.steps.map((s, i) => `
+          <div class="step-item">
+            <div class="step-num">${i+1}</div>
+            <div class="step-content">
+              <h4>${s.title}</h4>
+              <p>${s.desc}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   INICIALIZACIÓN
+============================================================ */
+function init() {
+  const tecCards = topics.filter(t => t.cat === 'tecnologia');
+  const iaCards = topics.filter(t => t.cat === 'ia');
+  const polCards = topics.filter(t => t.cat === 'politica');
+  const socCards = topics.filter(t => t.cat === 'sociedad');
+  const tutCards = topics.filter(t => t.cat === 'tutoriales');
+
+  buildCards('cards-todos', topics.filter(t => ['t1','ia1','p1','s1','tu1'].includes(t.id)));
+  buildCards('cards-tecnologia', tecCards);
+  buildCards('cards-ia', iaCards);
+  buildCards('cards-politica', polCards);
+  buildCards('cards-sociedad', socCards);
+  buildCards('cards-tutoriales', tutCards);
+  buildGlossary();
+  buildTutorials();
+}
+
+/* ============================================================
+   CATEGORÍAS
+============================================================ */
+function showCategory(cat) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`sec-${cat}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.main-wrap').offsetTop - 60, behavior: 'smooth' });
+}
+
+/* ============================================================
+   ARTICULOS
+============================================================ */
+function openArticle(id) {
+  const t = topics.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('article-icon').textContent = t.icon;
+  document.getElementById('article-tag').textContent = t.tag;
+  document.getElementById('article-title').textContent = t.title;
+  document.getElementById('article-body').innerHTML = t.content;
+  document.getElementById('article-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeArticle() {
+  document.getElementById('article-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  stopAloud();
+}
+
+function readArticle() {
+  const title = document.getElementById('article-title').textContent;
+  const body = document.getElementById('article-body').innerText;
+  speak(title + '. ' + body);
+}
+
+/* ============================================================
+   BUSQUEDA
+============================================================ */
+function doSearch() {
+  const query = document.getElementById('search-input').value.trim().toLowerCase();
+  const container = document.getElementById('search-results');
+  if (!query) { container.innerHTML = ''; return; }
+
+  const allItems = [
+    ...topics,
+    ...glossary.map(g => ({ id: 'g_'+g.word, title: g.word, desc: g.def, cat: 'jovenes', icon: '🗣️', tag: 'Lenguaje joven', bannerBg: '', content: `<p><strong>${g.word}:</strong> ${g.def}</p>` }))
+  ];
+
+  const results = allItems.filter(t =>
+    t.title.toLowerCase().includes(query) ||
+    t.desc.toLowerCase().includes(query) ||
+    (t.content && t.content.toLowerCase().includes(query))
+  );
+
+  if (results.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);padding:12px 0;">No encontramos resultados. Intente con otras palabras.</p>';
+    return;
+  }
+
+  container.innerHTML = results.slice(0, 5).map(r => `
+    <div class="search-result-item" onclick="${r.cat === 'jovenes' && r.id.startsWith('g_') ? '' : `openArticle('${r.id}')`}" tabindex="0">
+      <strong>${r.icon || '📖'} ${r.title}</strong>
+      <p>${r.desc}</p>
+    </div>
+  `).join('');
+}
+
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+/* ============================================================
+   AUTENTICACIÓN / LOGIN
+============================================================ */
+let currentModal = 'login';
+let loggedUser = null;
+
+function openModal(type) {
+  currentModal = type;
+  switchModal(type);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  clearErrors();
+}
+
+function switchModal(type) {
+  currentModal = type;
+  const isLogin = type === 'login';
+  document.getElementById('modal-title').textContent = isLogin ? 'Iniciar Sesión' : 'Crear cuenta';
+  document.getElementById('modal-sub').textContent = isLogin ? 'Bienvenido de vuelta.' : 'Es fácil y completamente gratuito.';
+  document.getElementById('login-form-wrap').style.display = isLogin ? '' : 'none';
+  document.getElementById('register-form-wrap').style.display = isLogin ? 'none' : '';
+}
+
+function clearErrors() {
+  document.querySelectorAll('.form-error').forEach(e => e.style.display = 'none');
+}
+
+function showError(id) {
+  document.getElementById(id).style.display = 'block';
+}
+
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function doLogin() {
+  clearErrors();
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  let valid = true;
+  if (!validateEmail(email)) { showError('err-login-email'); valid = false; }
+  if (!pw) { showError('err-login-pw'); valid = false; }
+  if (!valid) return;
+
+  const stored = localStorage.getItem('user_' + email);
+  if (!stored) { showError('err-login-email'); document.getElementById('err-login-email').textContent = 'No encontramos esa cuenta.'; return; }
+  const user = JSON.parse(stored);
+  if (user.pw !== btoa(pw)) { showError('err-login-pw'); document.getElementById('err-login-pw').textContent = 'Contraseña incorrecta.'; return; }
+
+  loggedUser = user;
+  closeModal();
+  updateAuthUI();
+  showToast('¡Bienvenido de vuelta, ' + user.name + '! 👋');
+}
+
+function doRegister() {
+  clearErrors();
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pw = document.getElementById('reg-password').value;
+  let valid = true;
+  if (!name) { showError('err-reg-name'); valid = false; }
+  if (!validateEmail(email)) { showError('err-reg-email'); valid = false; }
+  if (pw.length < 8) { showError('err-reg-pw'); valid = false; }
+  if (!valid) return;
+
+  const user = { name, email, pw: btoa(pw) };
+  localStorage.setItem('user_' + email, JSON.stringify(user));
+  loggedUser = user;
+  closeModal();
+  updateAuthUI();
+  showToast('¡Cuenta creada! Bienvenido/a, ' + name + ' 🎉');
+}
+
+function logout() {
+  loggedUser = null;
+  updateAuthUI();
+  showToast('Ha cerrado sesión. ¡Hasta pronto!');
+}
+
+function updateAuthUI() {
+  const btns = document.getElementById('login-btns');
+  const menu = document.getElementById('user-menu');
+  if (loggedUser) {
+    btns.style.display = 'none';
+    menu.classList.add('visible');
+    document.getElementById('user-name-display').textContent = loggedUser.name;
+  } else {
+    btns.style.display = '';
+    menu.classList.remove('visible');
+  }
+}
+
+/* ============================================================
+   CONTRASEÑA
+============================================================ */
+function checkStrength(pw) {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const fill = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  const levels = [
+    { pct: '0%', color: '#ccc', text: '' },
+    { pct: '25%', color: '#E74C3C', text: '⚠️ Contraseña débil' },
+    { pct: '50%', color: '#E67E22', text: '🔑 Contraseña regular' },
+    { pct: '75%', color: '#F1C40F', text: '✅ Contraseña buena' },
+    { pct: '90%', color: '#27AE60', text: '🔒 Contraseña muy segura' },
+    { pct: '100%', color: '#1ABC9C', text: '🛡️ Contraseña excelente' },
+  ];
+  const lvl = levels[score] || levels[0];
+  fill.style.width = lvl.pct;
+  fill.style.background = lvl.color;
+  label.textContent = lvl.text;
+}
+
+/* ============================================================
+   CONTRASEÑA VISIBLE O NO
+============================================================ */
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text'; btn.textContent = '🙈';
+  } else {
+    input.type = 'password'; btn.textContent = '👁';
+  }
+}
+
+/* ============================================================
+   TAMAÑO DE LETRA Y CONTRASTE
+============================================================ */
+function setTextSize(size) {
+  document.body.classList.remove('text-lg', 'text-xl');
+  document.querySelectorAll('#btn-text-normal, #btn-text-lg, #btn-text-xl').forEach(b => b.classList.remove('active'));
+  if (size === 'lg') { document.body.classList.add('text-lg'); document.getElementById('btn-text-lg').classList.add('active'); }
+  else if (size === 'xl') { document.body.classList.add('text-xl'); document.getElementById('btn-text-xl').classList.add('active'); }
+  else { document.getElementById('btn-text-normal').classList.add('active'); }
+  localStorage.setItem('textSize', size);
+}
+
+function toggleContrast() {
+  document.body.classList.toggle('high-contrast');
+  const btn = document.getElementById('btn-contrast');
+  btn.classList.toggle('active');
+  localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+}
+
+/* ============================================================
+   AUDIOS
+============================================================ */
+let speechSynth = window.speechSynthesis;
+let currentUtterance = null;
+
+function speak(text) {
+  stopAloud();
+  const cleanText = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  const utter = new SpeechSynthesisUtterance(cleanText);
+  utter.lang = 'es-MX';
+  utter.rate = 0.85;
+  utter.pitch = 1;
+  utter.onend = () => {
+    document.getElementById('stop-aloud-btn').style.display = 'none';
+    document.getElementById('read-aloud-btn').style.display = '';
+  };
+  currentUtterance = utter;
+  speechSynth.speak(utter);
+  document.getElementById('stop-aloud-btn').style.display = '';
+  document.getElementById('read-aloud-btn').style.display = 'none';
+}
+
+function readAloud() {
+  const active = document.querySelector('.content-section.active');
+  const text = active ? active.innerText : document.querySelector('main').innerText;
+  speak(text);
+}
+
+function stopAloud() {
+  speechSynth.cancel();
+  document.getElementById('stop-aloud-btn').style.display = 'none';
+  document.getElementById('read-aloud-btn').style.display = '';
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ============================================================
+   PROCESO DE SCROLL Y BARRA DE PROGRESO
+============================================================ */
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  const pct = total > 0 ? (scrolled / total) * 100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+/* ============================================================
+    CERRAR MODALES AL HACER CLICK FUERA
+============================================================ */
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('article-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeArticle();
+});
+
+/* ============================================================
+    Cargar tamaño de letra guardado y mostrar primera categoría
+============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  const savedSize = localStorage.getItem('textSize') || 'normal';
+  setTextSize(savedSize);
+  if (localStorage.getItem('highContrast') === 'true') toggleContrast();
+  init();
+});
+
+/* ============================================================
+    Cerrar modales con la tecla Escape
+============================================================ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeArticle(); }
+});
+</script>
+</body>
+</html>
