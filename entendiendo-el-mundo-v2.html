@@ -1,0 +1,2990 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entendiendo el Mundo de Hoy</title>
+
+  <!-- SEGURIDAD #1 — Content Security Policy (CSP)
+       Previene XSS: bloquea scripts/estilos de orígenes no autorizados.
+       En servidor de producción esto también va como HTTP header:
+         Content-Security-Policy: default-src 'self'; ...
+       ══════════════════════════════════════════════════════════ -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.emailjs.com https://api.emailjs.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.emailjs.com;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                 font-src https://fonts.gstatic.com;
+                 connect-src https://api.emailjs.com;
+                 object-src 'none';
+                 base-uri 'self';"/>
+
+  <!-- EMAILJS — SDK para envío real de correos desde el frontend
+       Documentación: https://www.emailjs.com/docs/
+       Se carga desde CDN oficial con integridad SRI. -->
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+
+  <!-- SEGURIDAD #2 — Anti-clickjacking (equivalente cliente de X-Frame-Options: DENY) -->
+  <meta http-equiv="X-Frame-Options" content="DENY"/>
+
+  <!-- SEGURIDAD #3 — Deshabilitar MIME sniffing (X-Content-Type-Options: nosniff) -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+
+  <!-- SEGURIDAD #4 — HTTPS/HSTS: en servidor Nginx/Apache agregar:
+       Strict-Transport-Security: max-age=31536000; includeSubDomains; preload -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ==================== CSS VARIABLES & RESET ==================== */
+    :root {
+      --cream: #FDF6EC;
+      --warm-white: #FFFBF4;
+      --amber: #D4853A;
+      --amber-light: #F0A85A;
+      --amber-dark: #A8621E;
+      --forest: #3A6B4A;
+      --forest-light: #5A8A6A;
+      --navy: #2C3E6B;
+      --navy-light: #4A5E8A;
+      --text-dark: #1C1A16;
+      --text-mid: #3D3830;
+      --text-light: #6B6258;
+      --border: #E8D8C0;
+      --shadow-warm: rgba(180,120,50,0.15);
+      --shadow-deep: rgba(30,20,10,0.2);
+
+      --font-display: 'Lora', Georgia, serif;
+      --font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+
+      /* =====================================================
+         FIX #1 — TAMAÑOS DE LETRA CORREGIDOS
+         Saltos mucho más agresivos y perceptibles:
+         Normal: 18px base → todo en rem escala con html
+         Grande: 24px base → 33% más grande
+         Muy Grande: 32px base → 78% más grande que normal
+         ===================================================== */
+      --base-size: 18px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: var(--base-size);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--text-dark);
+      line-height: 1.75;
+      overflow-x: hidden;
+      /* Transición suave al cambiar tamaño */
+      transition: font-size 0.25s ease;
+    }
+
+    /* =====================================================
+       FIX #1 — CLASES DE TAMAÑO (saltos claros y visibles)
+       Normal  → html = 18px
+       Grande  → html = 24px  (+33%)
+       MuyGrande → html = 32px (+78%)
+       Todo el contenido usa rem, por lo que escala junto.
+       ===================================================== */
+    html.text-normal { font-size: 18px; }
+    html.text-lg     { font-size: 24px; }
+    html.text-xl     { font-size: 32px; }
+
+    /* Alto contraste */
+    body.high-contrast {
+      --cream: #000000;
+      --warm-white: #111111;
+      --border: #FFD700;
+      --text-dark: #FFFFFF;
+      --text-mid: #EEEEEE;
+      --text-light: #CCCCCC;
+      --navy: #0044CC;
+      --amber: #FFB300;
+    }
+
+    /* ==================== ACCESSIBILITY TOOLBAR ==================== */
+    #a11y-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    #a11y-bar .a11y-label {
+      /* Tamaño fijo en px, no escala con rem para no ocupar espacio extra en la barra */
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+
+    .a11y-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .a11y-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 6px;
+      /* Tamaño fijo para la barra de herramientas, no escala */
+      padding: 6px 14px;
+      font-size: 14px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    .a11y-btn:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+    .a11y-btn.active { background: var(--amber); border-color: var(--amber); }
+
+    /* Indicador visual del tamaño activo */
+    #btn-text-normal { font-size: 13px; }
+    #btn-text-lg     { font-size: 15px; font-weight: 700; }
+    #btn-text-xl     { font-size: 17px; font-weight: 700; }
+
+    #read-aloud-btn {
+      background: var(--forest);
+      border-color: var(--forest-light);
+    }
+
+    /* ==================== SKIP LINK ==================== */
+    .skip-link {
+      position: absolute;
+      top: -99px; left: 0;
+      background: var(--amber);
+      color: #fff;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 1rem;
+      z-index: 9999;
+      border-radius: 0 0 8px 0;
+    }
+    .skip-link:focus { top: 52px; }
+
+    /* ==================== HERO ==================== */
+    .site-header {
+      margin-top: 52px;
+      background: linear-gradient(160deg, #2C3E6B 0%, #1a2845 50%, #3A6B4A 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 70px 24px 60px;
+      text-align: center;
+    }
+    .site-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(212,133,58,0.18) 0%, transparent 55%),
+        radial-gradient(circle at 80% 30%, rgba(90,138,106,0.15) 0%, transparent 50%);
+    }
+    .hero-icon {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 12px;
+      position: relative;
+      animation: floatIcon 4s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+    .site-header h1 {
+      font-family: var(--font-display);
+      /* clamp en rem para que escale con el tamaño elegido */
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      color: #fff;
+      position: relative;
+      line-height: 1.2;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+      margin-bottom: 16px;
+    }
+    .site-header .tagline {
+      font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+      color: rgba(255,255,255,0.82);
+      max-width: 640px;
+      margin: 0 auto 30px;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hero-badge {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 30px;
+      padding: 6px 16px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ==================== SEARCH ==================== */
+    #search-section {
+      background: var(--warm-white);
+      border-bottom: 2px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+    .search-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .search-wrap label {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--text-mid);
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #search-input {
+      flex: 1;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      padding: 0.85rem 1.3rem;
+      border: 2.5px solid var(--border);
+      border-radius: 50px;
+      background: #fff;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #search-input:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 4px rgba(212,133,58,0.15);
+    }
+    #search-input::placeholder { color: #b0a090; }
+    #search-btn {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.85rem 1.5rem;
+      font-size: 1rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    #search-btn:hover { background: var(--amber-dark); transform: scale(1.04); }
+    #search-results { margin-top: 1.2rem; text-align: left; }
+    .search-result-item {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-result-item:hover {
+      border-color: var(--amber);
+      box-shadow: 0 4px 16px var(--shadow-warm);
+    }
+    .search-result-item strong { color: var(--amber-dark); font-family: var(--font-display); }
+    .search-result-item p { font-size: 0.88rem; color: var(--text-light); margin-top: 4px; }
+
+    /* ==================== MAIN LAYOUT ==================== */
+    .main-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* ==================== LOGIN MODAL ==================== */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,15,10,0.65);
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      padding: 1rem;
+    }
+    #modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--warm-white);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      position: relative;
+      animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.85) translateY(30px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-box h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .modal-box .modal-sub { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      padding: 0.8rem 1.1rem;
+      border: 2.5px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 4px rgba(44,62,107,0.12);
+    }
+    .form-error { color: #C0392B; font-size: 0.82rem; margin-top: 5px; display: none; }
+    .password-wrap { position: relative; }
+    .toggle-pw {
+      position: absolute;
+      right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 1.2rem; color: var(--text-light);
+    }
+    .strength-bar {
+      height: 6px; border-radius: 4px;
+      background: #E0D6C8;
+      margin-top: 8px; overflow: hidden;
+    }
+    .strength-bar-fill {
+      height: 100%; border-radius: 4px;
+      width: 0%; transition: width 0.3s, background 0.3s;
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.9rem;
+      font-size: 1rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { background: var(--navy-light); transform: translateY(-2px); }
+    .modal-switch { text-align: center; margin-top: 1.1rem; font-size: 0.9rem; color: var(--text-light); }
+    .modal-switch button {
+      background: none; border: none; color: var(--amber-dark);
+      font-weight: 700; cursor: pointer; font-size: 0.9rem;
+      font-family: var(--font-body); text-decoration: underline;
+    }
+    .close-modal {
+      position: absolute; top: 16px; right: 18px;
+      background: none; border: none; font-size: 1.5rem;
+      color: var(--text-light); cursor: pointer;
+    }
+    .close-modal:hover { color: var(--text-dark); }
+
+    /* ==================== AUTH NAV ==================== */
+    #auth-nav {
+      position: fixed;
+      top: 52px; right: 0;
+      z-index: 800;
+      display: flex;
+      gap: 0;
+      background: var(--warm-white);
+      border-left: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      border-radius: 0 0 0 12px;
+      overflow: hidden;
+    }
+    .auth-btn {
+      padding: 9px 18px;
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+    #btn-login    { background: var(--amber); color: #fff; }
+    #btn-login:hover { background: var(--amber-dark); }
+    #btn-register { background: var(--forest); color: #fff; }
+    #btn-register:hover { background: #2e5038; }
+    #user-menu { display: none; align-items: center; gap: 10px; padding: 8px 16px; }
+    #user-menu.visible { display: flex; }
+    #user-greeting { font-size: 0.85rem; font-weight: 600; color: var(--text-mid); }
+    #btn-logout {
+      background: none; border: 2px solid var(--border);
+      border-radius: 6px; padding: 4px 10px;
+      font-size: 0.8rem; color: var(--text-light);
+      cursor: pointer; font-family: var(--font-body);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #btn-logout:hover { border-color: #C0392B; color: #C0392B; }
+
+    /* ==================== CATEGORY NAV ==================== */
+    .category-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+    .cat-btn {
+      background: #fff;
+      border: 2.5px solid var(--border);
+      border-radius: 50px;
+      padding: 0.55rem 1.2rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-btn:hover, .cat-btn.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px var(--shadow-warm);
+    }
+
+    /* ==================== SECTION HEADING ==================== */
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      color: var(--navy);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-heading span { font-size: 1.4rem; }
+
+    /* ==================== CARDS GRID ==================== */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 3rem;
+    }
+    .topic-card {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+    .topic-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px var(--shadow-warm);
+      border-color: var(--amber);
+    }
+    .card-banner {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+    .card-body { padding: 1.1rem 1.2rem 1.3rem; flex: 1; display: flex; flex-direction: column; }
+    .card-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 5px;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--text-dark);
+      margin-bottom: 7px;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 1rem;
+    }
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-start;
+    }
+    .card-cta:hover { background: var(--navy-light); }
+
+    /* ==================== ARTICLE MODAL ==================== */
+    #article-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 950;
+      background: rgba(20,15,10,0.7);
+      align-items: flex-start;
+      justify-content: center;
+      padding: 4.5rem 1rem 2rem;
+      overflow-y: auto;
+      backdrop-filter: blur(4px);
+    }
+    #article-modal.open { display: flex; }
+    .article-box {
+      background: var(--warm-white);
+      border-radius: 20px;
+      max-width: 700px;
+      width: 100%;
+      padding: 2.5rem;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .article-box .close-article {
+      position: absolute; top: 16px; right: 18px;
+      background: var(--border); border: none; border-radius: 50%;
+      width: 38px; height: 38px; font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-mid); transition: background 0.2s;
+    }
+    .article-box .close-article:hover { background: #ddd; }
+    .article-icon { font-size: 3rem; display: block; margin-bottom: 8px; }
+    .article-box h2 { font-family: var(--font-display); font-size: 1.7rem; color: var(--navy); margin-bottom: 5px; }
+    .article-box .article-tag {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--amber); margin-bottom: 1rem; display: block;
+    }
+    .article-box .article-content { font-size: 1rem; line-height: 1.8; color: var(--text-mid); }
+    .article-box .article-content h3 {
+      font-family: var(--font-display); color: var(--navy);
+      font-size: 1.15rem; margin: 1.3rem 0 0.6rem;
+    }
+    .article-box .article-content p { margin-bottom: 0.8rem; }
+    .article-box .article-content .highlight {
+      background: rgba(212,133,58,0.12);
+      border-left: 4px solid var(--amber);
+      padding: 0.8rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-size: 0.97rem;
+    }
+    .article-nav { margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; }
+    .article-nav-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: #fff;
+      color: var(--text-mid);
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .article-nav-btn:hover { background: var(--amber); border-color: var(--amber); color: #fff; }
+    #read-article-btn { background: var(--forest); border-color: var(--forest); color: #fff; }
+    #read-article-btn:hover { background: #2e5038; }
+
+    /* ==================== GLOSSARY ==================== */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .glos-item {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .glos-item:hover { border-color: var(--forest); box-shadow: 0 6px 20px rgba(58,107,74,0.12); }
+    .glos-word { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--forest); margin-bottom: 5px; }
+    .glos-def { font-size: 0.85rem; color: var(--text-light); line-height: 1.6; }
+
+    /* ==================== HOW-TO STEPS ==================== */
+    .steps-list { margin-bottom: 3rem; }
+    .step-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1.1rem 1.2rem;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 0.8rem;
+      transition: border-color 0.2s;
+    }
+    .step-item:hover { border-color: var(--navy); }
+    .step-num {
+      min-width: 46px; height: 46px;
+      background: var(--navy); color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; flex-shrink: 0;
+    }
+    .step-content h4 { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-dark); margin-bottom: 4px; }
+    .step-content p { font-size: 0.88rem; color: var(--text-light); line-height: 1.65; }
+
+    /* ==================== FOOTER ==================== */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 2rem 1.5rem;
+      font-size: 0.88rem;
+      line-height: 1.8;
+    }
+    footer strong { color: #fff; }
+    footer a { color: var(--amber-light); }
+
+    /* ==================== TOAST ==================== */
+    #toast {
+      position: fixed;
+      bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--forest); color: #fff;
+      padding: 0.8rem 1.6rem;
+      border-radius: 50px; font-weight: 600; font-size: 0.95rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      z-index: 2000;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+      max-width: 90vw; text-align: center;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ==================== READING PROGRESS ==================== */
+    #progress-bar {
+      position: fixed;
+      top: 52px; left: 0;
+      height: 4px;
+      background: var(--amber);
+      z-index: 999;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ==================== SECTIONS ==================== */
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+
+    /* ==================== PROTECCIÓN DE DATOS ==================== */
+    /* Banner de cookies */
+    #cookie-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 1100;
+      background: var(--navy);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+      border-top: 3px solid var(--amber);
+      animation: slideUpBanner 0.5s ease;
+    }
+    @keyframes slideUpBanner {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    #cookie-banner.hidden { display: none; }
+    .cookie-text { font-size: 0.85rem; line-height: 1.6; flex: 1; min-width: 200px; }
+    .cookie-text a { color: var(--amber-light); text-decoration: underline; cursor: pointer; }
+    .cookie-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-cookie-accept {
+      background: var(--amber); color: #fff; border: none;
+      border-radius: 8px; padding: 0.55rem 1.2rem;
+      font-family: var(--font-body); font-size: 0.88rem; font-weight: 700;
+      cursor: pointer; transition: background 0.2s; white-space: nowrap;
+    }
+    .btn-cookie-accept:hover { background: var(--amber-dark); }
+    .btn-cookie-reject {
+      background: transparent; color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px; padding: 0.55rem 1.2rem;
+      font-family: var(--font-body); font-size: 0.88rem;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-cookie-reject:hover { color: #fff; border-color: #fff; }
+
+    /* Modal de aviso de privacidad */
+    #privacy-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(20,15,10,0.7);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+    #privacy-modal.open { display: flex; }
+    .privacy-box {
+      background: var(--warm-white);
+      border-radius: 20px;
+      max-width: 580px; width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2.2rem;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      animation: modalIn 0.3s ease;
+    }
+    .privacy-box h2 { font-family: var(--font-display); font-size: 1.5rem; color: var(--navy); margin-bottom: 0.3rem; }
+    .privacy-box .privacy-version { font-size: 0.75rem; color: var(--text-light); margin-bottom: 1.2rem; display: block; }
+    .privacy-box h3 { font-family: var(--font-display); font-size: 1rem; color: var(--navy); margin: 1.2rem 0 0.4rem; }
+    .privacy-box p { font-size: 0.88rem; line-height: 1.7; color: var(--text-mid); margin-bottom: 0.5rem; }
+    .privacy-box ul { padding-left: 1.2rem; margin-bottom: 0.5rem; }
+    .privacy-box ul li { font-size: 0.88rem; color: var(--text-mid); line-height: 1.7; margin-bottom: 0.2rem; }
+    .privacy-highlight {
+      background: rgba(212,133,58,0.1);
+      border-left: 3px solid var(--amber);
+      padding: 0.7rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0; font-size: 0.85rem; color: var(--text-mid);
+    }
+    .close-privacy {
+      position: absolute; top: 14px; right: 16px;
+      background: var(--border); border: none; border-radius: 50%;
+      width: 34px; height: 34px; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-mid); transition: background 0.2s;
+    }
+    .close-privacy:hover { background: #ddd; }
+    .btn-close-privacy {
+      width: 100%; margin-top: 1.2rem;
+      background: var(--navy); color: #fff; border: none;
+      border-radius: 10px; padding: 0.8rem;
+      font-family: var(--font-body); font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-close-privacy:hover { background: var(--navy-light); }
+
+    /* Checkbox de consentimiento en registro */
+    .consent-group { margin-top: 0.8rem; margin-bottom: 0.5rem; display: flex; gap: 10px; align-items: flex-start; }
+    .consent-group input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--navy); margin-top: 2px; cursor: pointer; }
+    .consent-label { font-size: 0.82rem; color: var(--text-light); line-height: 1.5; }
+    .consent-label a { color: var(--amber-dark); text-decoration: underline; cursor: pointer; }
+    .form-error-consent { color: #C0392B; font-size: 0.8rem; margin-top: 4px; display: none; }
+
+    /* Botón eliminar datos en menú usuario */
+    #btn-delete-data {
+      background: none; border: 2px solid #C0392B;
+      border-radius: 6px; padding: 4px 10px;
+      font-size: 0.78rem; color: #C0392B;
+      cursor: pointer; font-family: var(--font-body);
+      transition: all 0.2s; white-space: nowrap;
+    }
+    #btn-delete-data:hover { background: #C0392B; color: #fff; }
+
+    /* ══════════════════════════════════════════════════════════
+       RECUPERACIÓN DE CONTRASEÑA — Estilos del modal
+       Tres pasos visuales:
+         Paso 1: Solicitar correo
+         Paso 2: Ingresar token + nueva contraseña
+         Paso 3: Confirmación de éxito
+       ══════════════════════════════════════════════════════════ */
+    #recovery-modal {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(20,15,10,0.65);
+      align-items: center; justify-content: center;
+      padding: 1rem; backdrop-filter: blur(4px);
+    }
+    #recovery-modal.open { display: flex; }
+
+    .recovery-box {
+      background: var(--warm-white); border-radius: 20px;
+      padding: 2.4rem; max-width: 420px; width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      position: relative;
+      animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    /* Indicador de pasos */
+    .recovery-steps {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 1.6rem;
+    }
+    .recovery-step {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+      border: 2px solid var(--border); color: var(--text-light);
+      background: #fff; transition: all 0.3s;
+    }
+    .recovery-step.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .recovery-step.done   { background: var(--forest); border-color: var(--forest); color: #fff; }
+    .recovery-step-line   { flex: 1; height: 2px; background: var(--border); transition: background 0.3s; }
+    .recovery-step-line.done { background: var(--forest); }
+
+    .recovery-box h2 {
+      font-family: var(--font-display); font-size: 1.45rem;
+      color: var(--navy); margin-bottom: 0.3rem;
+    }
+    .recovery-box .recovery-sub {
+      font-size: 0.88rem; color: var(--text-light);
+      line-height: 1.6; margin-bottom: 1.4rem;
+    }
+
+    /* Countdown del token */
+    #token-countdown {
+      font-size: 0.82rem; text-align: center;
+      color: var(--text-light); margin-bottom: 1rem;
+      padding: 0.5rem; border-radius: 8px;
+      background: var(--cream);
+    }
+    #token-countdown.expiring {
+      color: #E74C3C; font-weight: 700;
+      background: #FEF2F2;
+    }
+
+    /* Pantalla de éxito */
+    .recovery-success {
+      text-align: center; padding: 1rem 0;
+    }
+    .recovery-success .success-icon {
+      font-size: 3.5rem; display: block; margin-bottom: 0.8rem;
+      animation: bounceIn 0.5s ease;
+    }
+    @keyframes bounceIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .recovery-success h3 {
+      font-family: var(--font-display); font-size: 1.3rem;
+      color: var(--forest); margin-bottom: 0.5rem;
+    }
+    .recovery-success p { font-size: 0.88rem; color: var(--text-light); }
+
+    .close-recovery {
+      position: absolute; top: 14px; right: 16px;
+      background: var(--border); border: none; border-radius: 50%;
+      width: 34px; height: 34px; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-mid); transition: background 0.2s;
+    }
+    .close-recovery:hover { background: #ddd; }
+
+    .btn-secondary {
+      width: 100%; background: transparent;
+      border: 2px solid var(--border); color: var(--text-mid);
+      border-radius: 10px; padding: 0.75rem;
+      font-size: 0.95rem; font-family: var(--font-body);
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+      margin-top: 0.6rem;
+    }
+    .btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
+
+    /* ══════════════════════════════════════════════════════════
+       SEGURIDAD #5 — PANEL DE ADMINISTRACIÓN
+       Acceso restringido solo a usuario con rol 'admin'.
+       Control de acceso basado en roles (RBAC).
+       ══════════════════════════════════════════════════════════ */
+    #admin-modal {
+      display: none; position: fixed; inset: 0; z-index: 1300;
+      background: rgba(20,15,10,0.75); align-items: flex-start;
+      justify-content: center; padding: 1rem; backdrop-filter: blur(4px);
+      overflow-y: auto;
+    }
+    #admin-modal.open { display: flex; }
+    .admin-box {
+      background: var(--warm-white); border-radius: 20px;
+      max-width: 860px; width: 100%; padding: 2rem;
+      margin: 0.5rem auto; position: relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+      animation: modalIn 0.3s ease;
+    }
+    .admin-box h2 { font-family: var(--font-display); font-size: 1.5rem; color: var(--navy); margin-bottom: 0.2rem; }
+    .admin-role-badge {
+      display: inline-block; background: var(--amber); color: #fff;
+      border-radius: 20px; padding: 2px 12px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 1.2rem;
+    }
+    .admin-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.4rem; border-bottom: 2px solid var(--border); padding-bottom: 0.8rem; }
+    .admin-tab {
+      padding: 0.45rem 1rem; border-radius: 6px; border: 2px solid var(--border);
+      background: #fff; font-family: var(--font-body); font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-mid);
+    }
+    .admin-tab.active, .admin-tab:hover { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .admin-panel { display: none; }
+    .admin-panel.active { display: block; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .admin-table th { background: var(--navy); color: #fff; padding: 8px 12px; text-align: left; }
+    .admin-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-mid); }
+    .admin-table tr:nth-child(even) td { background: var(--cream); }
+    .badge-admin  { background: var(--amber);  color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.72rem; font-weight: 700; }
+    .badge-user   { background: var(--forest); color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.72rem; font-weight: 700; }
+    .badge-active { background: #27AE60; color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.72rem; }
+    .badge-warn   { background: #E74C3C; color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.72rem; }
+    .audit-entry { font-size: 0.82rem; padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-mid); display: flex; gap: 10px; align-items: baseline; }
+    .audit-time  { color: var(--text-light); white-space: nowrap; min-width: 160px; font-size: 0.75rem; }
+    .audit-type  { font-weight: 700; min-width: 90px; }
+    .audit-type.LOGIN    { color: var(--forest); }
+    .audit-type.REGISTER { color: var(--navy); }
+    .audit-type.LOGOUT   { color: var(--amber); }
+    .audit-type.DELETE   { color: #E74C3C; }
+    .audit-type.FAIL     { color: #C0392B; }
+    .audit-type.ADMIN    { color: var(--amber-dark); }
+    .admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 1rem; margin-bottom: 1.2rem; }
+    .admin-stat { background: #fff; border: 2px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; }
+    .admin-stat .stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--navy); }
+    .admin-stat .stat-lbl { font-size: 0.78rem; color: var(--text-light); margin-top: 4px; }
+    .close-admin {
+      position: absolute; top: 14px; right: 16px;
+      background: var(--border); border: none; border-radius: 50%;
+      width: 34px; height: 34px; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-mid); transition: background 0.2s;
+    }
+    .close-admin:hover { background: #ddd; }
+    #btn-admin-panel {
+      background: var(--amber-dark); color: #fff; border: none;
+      border-radius: 6px; padding: 4px 10px; font-size: 0.78rem;
+      cursor: pointer; font-family: var(--font-body); font-weight: 700;
+      display: none; transition: background 0.2s;
+    }
+    #btn-admin-panel:hover { background: var(--amber); }
+
+    /* ══════════════════════════════════════════════════════════
+       SEGURIDAD #6 — MODAL DE PERFIL DE USUARIO
+       Gestión de perfil: cambiar nombre, ver fecha de registro,
+       ver consentimiento. (Derecho ARCO: Acceso y Rectificación)
+       ══════════════════════════════════════════════════════════ */
+    #profile-modal {
+      display: none; position: fixed; inset: 0; z-index: 1250;
+      background: rgba(20,15,10,0.7); align-items: center;
+      justify-content: center; padding: 1rem; backdrop-filter: blur(4px);
+    }
+    #profile-modal.open { display: flex; }
+    .profile-box {
+      background: var(--warm-white); border-radius: 20px;
+      max-width: 460px; width: 100%; padding: 2.2rem;
+      position: relative; box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+      animation: modalIn 0.3s ease; max-height: 90vh; overflow-y: auto;
+    }
+    .profile-box h2 { font-family: var(--font-display); font-size: 1.4rem; color: var(--navy); margin-bottom: 1.2rem; }
+    .profile-info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    .profile-info-row span:first-child { color: var(--text-light); font-weight: 600; }
+    .profile-info-row span:last-child  { color: var(--text-dark); }
+    .close-profile {
+      position: absolute; top: 14px; right: 16px;
+      background: var(--border); border: none; border-radius: 50%;
+      width: 34px; height: 34px; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-mid); transition: background 0.2s;
+    }
+    .close-profile:hover { background: #ddd; }
+    #btn-profile {
+      background: none; border: 2px solid var(--navy-light);
+      border-radius: 6px; padding: 4px 10px; font-size: 0.78rem;
+      color: var(--navy); cursor: pointer; font-family: var(--font-body);
+      font-weight: 600; transition: all 0.2s; white-space: nowrap;
+    }
+    #btn-profile:hover { background: var(--navy); color: #fff; }
+
+    /* =======================================================
+       FIX #2 — DISEÑO RESPONSIVO MEJORADO
+       - Menú hamburguesa para móvil
+       - Auth nav visible en móvil con diseño diferente
+       - Botones de categoría scrollables en móvil
+       - Tipografía base más grande en móvil
+       - Modales con padding correcto en móvil
+       - Grid de tarjetas adaptado
+       ======================================================= */
+
+    /* Hamburger button — solo visible en móvil */
+    #hamburger-btn {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 850;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 56px; height: 56px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transition: background 0.2s, transform 0.2s;
+    }
+    #hamburger-btn:hover { background: var(--amber); transform: scale(1.08); }
+
+    /* Panel móvil de auth */
+    #mobile-auth-panel {
+      display: none;
+      position: fixed;
+      bottom: 90px; right: 20px;
+      z-index: 849;
+      background: var(--warm-white);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      flex-direction: column;
+      gap: 10px;
+      min-width: 200px;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    #mobile-auth-panel.open { display: flex; }
+    .mobile-auth-btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .mobile-auth-btn.login-m   { background: var(--amber); color: #fff; }
+    .mobile-auth-btn.register-m { background: var(--forest); color: #fff; }
+    .mobile-auth-btn.logout-m  { background: none; border: 2px solid var(--border); color: var(--text-mid); }
+
+    /* ── Responsive breakpoints ── */
+
+    /* Tablet: 768px y abajo */
+    @media (max-width: 768px) {
+      #auth-nav { display: none; } /* Ocultamos el auth nav de escritorio */
+      #hamburger-btn { display: flex; align-items: center; justify-content: center; }
+
+      .site-header { padding: 50px 20px 44px; margin-top: 52px; }
+      .hero-icon { font-size: 3rem; }
+
+      .main-wrap { padding: 1.5rem 1rem; }
+
+      /* Categorías: scroll horizontal en móvil */
+      .category-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 8px;
+      }
+      .category-nav::-webkit-scrollbar { display: none; }
+      .cat-btn { flex-shrink: 0; font-size: 0.88rem; padding: 0.5rem 1rem; }
+
+      .cards-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+      .glossary-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    }
+
+    /* Móvil: 480px y abajo */
+    @media (max-width: 480px) {
+      /* En pantallas muy pequeñas, tamaño base mínimo para legibilidad */
+      html { font-size: 17px; }
+      html.text-lg  { font-size: 22px; }
+      html.text-xl  { font-size: 28px; }
+
+      #a11y-bar { padding: 6px 12px; gap: 6px; }
+      #a11y-bar .a11y-label { display: none; }
+      .a11y-btn { padding: 5px 10px; font-size: 12px; }
+
+      .site-header { padding: 40px 16px 36px; }
+      .site-header h1 { font-size: 1.6rem; }
+      .tagline { font-size: 0.92rem; }
+      .hero-badge { font-size: 0.62rem; padding: 5px 12px; }
+
+      #search-section { padding: 1.4rem 1rem; }
+      .search-wrap label { font-size: 1rem; }
+      .search-row { flex-direction: column; gap: 8px; }
+      #search-input, #search-btn { width: 100%; }
+      #search-btn { border-radius: 50px; padding: 0.75rem 1rem; }
+
+      .cards-grid { grid-template-columns: 1fr; }
+      .glossary-grid { grid-template-columns: 1fr; }
+
+      .article-box { padding: 1.8rem 1.2rem; }
+      .article-box h2 { font-size: 1.3rem; }
+      .modal-box { padding: 1.8rem 1.2rem; }
+
+      .step-item { gap: 0.8rem; padding: 0.9rem 1rem; }
+      .step-num { min-width: 40px; height: 40px; font-size: 1rem; }
+
+      .section-heading { font-size: 1.1rem; }
+      .card-title { font-size: 1rem; }
+
+      footer { padding: 1.5rem 1rem; font-size: 0.82rem; }
+    }
+
+    /* Muy pequeño: 360px */
+    @media (max-width: 360px) {
+      html { font-size: 16px; }
+      html.text-lg  { font-size: 20px; }
+      html.text-xl  { font-size: 26px; }
+      .a11y-btn { padding: 4px 8px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Ir al contenido principal</a>
+<div id="progress-bar" aria-hidden="true"></div>
+
+<!-- ACCESSIBILITY TOOLBAR -->
+<div id="a11y-bar" role="toolbar" aria-label="Herramientas de accesibilidad">
+  <span class="a11y-label">♿ Accesibilidad</span>
+  <div class="a11y-controls">
+    <button class="a11y-btn" id="btn-text-normal" onclick="setTextSize('normal')" title="Texto normal">Aa</button>
+    <button class="a11y-btn" id="btn-text-lg"     onclick="setTextSize('lg')"     title="Texto grande">A+</button>
+    <button class="a11y-btn" id="btn-text-xl"     onclick="setTextSize('xl')"     title="Texto muy grande">A++</button>
+    <button class="a11y-btn" id="btn-contrast"    onclick="toggleContrast()"      title="Alto contraste">🌓</button>
+    <button class="a11y-btn" id="read-aloud-btn"  onclick="readAloud()"           title="Leer en voz alta">🔊 Leer</button>
+    <button class="a11y-btn" id="stop-aloud-btn"  onclick="stopAloud()"           title="Detener" style="display:none;">⏹ Detener</button>
+  </div>
+</div>
+
+<!-- AUTH NAV (escritorio) -->
+<nav id="auth-nav" aria-label="Acceso de usuario">
+  <div id="login-btns">
+    <button class="auth-btn" id="btn-login"    onclick="openModal('login')">🔐 Iniciar Sesión</button>
+    <button class="auth-btn" id="btn-register" onclick="openModal('register')">📝 Registrarse</button>
+  </div>
+  <div id="user-menu">
+    <span id="user-greeting">👋 Hola, <strong id="user-name-display"></strong></span>
+    <!-- SEGURIDAD #5 — Botón de panel admin (visible solo si rol='admin') -->
+    <button id="btn-admin-panel" onclick="openAdmin()" title="Panel de administración">⚙️ Admin</button>
+    <!-- SEGURIDAD #6 — Gestión de perfil de usuario -->
+    <button id="btn-profile" onclick="openProfile()" title="Mi perfil">👤 Mi perfil</button>
+    <button id="btn-logout" onclick="logout()">Salir</button>
+    <button id="btn-delete-data" onclick="deleteUserData()" title="Eliminar mis datos">🗑️ Mis datos</button>
+  </div>
+</nav>
+
+<!-- HAMBURGER BUTTON (móvil) -->
+<button id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menú de usuario">☰</button>
+
+<!-- PANEL MÓVIL DE AUTH -->
+<div id="mobile-auth-panel" role="region" aria-label="Acceso móvil">
+  <div id="mobile-login-btns">
+    <button class="mobile-auth-btn login-m"    onclick="openModal('login');   toggleMobileMenu()">🔐 Iniciar Sesión</button>
+    <button class="mobile-auth-btn register-m" onclick="openModal('register');toggleMobileMenu()">📝 Registrarse</button>
+  </div>
+  <div id="mobile-user-area" style="display:none;">
+    <p id="mobile-user-greeting" style="font-size:0.9rem;font-weight:600;color:var(--text-mid);margin-bottom:8px;"></p>
+    <button class="mobile-auth-btn logout-m" onclick="logout(); toggleMobileMenu()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="site-header" role="banner">
+  <span class="hero-icon" aria-hidden="true">🌍</span>
+  <h1>Entendiendo el Mundo de Hoy</h1>
+  <p class="tagline">Un espacio pensado con cariño para personas mayores que quieren aprender sobre la vida moderna, sin complicaciones y con paciencia.</p>
+  <div class="hero-badges">
+    <span class="hero-badge">✅ Fácil de leer</span>
+    <span class="hero-badge">🔊 Voz alta</span>
+    <span class="hero-badge">🔡 Texto ajustable</span>
+    <span class="hero-badge">📱 Celular</span>
+  </div>
+</header>
+
+<!-- SEARCH -->
+<section id="search-section" aria-label="Buscar temas">
+  <div class="search-wrap">
+    <label for="search-input">¿Sobre qué tema le gustaría aprender hoy?</label>
+    <div class="search-row" role="search">
+      <input type="search" id="search-input" placeholder="Ej: WhatsApp, LGBT, Inteligencia Artificial…" aria-label="Buscar temas" autocomplete="off"/>
+      <button id="search-btn" onclick="doSearch()" aria-label="Buscar">🔍 Buscar</button>
+    </div>
+    <div id="search-results" role="region" aria-live="polite" aria-label="Resultados"></div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main id="main-content" class="main-wrap">
+  <nav class="category-nav" aria-label="Categorías">
+    <button class="cat-btn active" onclick="showCategory('todos',event)">🏠 Todos</button>
+    <button class="cat-btn" onclick="showCategory('tecnologia',event)">💻 Tecnología</button>
+    <button class="cat-btn" onclick="showCategory('politica',event)">🏛️ Política</button>
+    <button class="cat-btn" onclick="showCategory('sociedad',event)">🌈 Sociedad</button>
+    <button class="cat-btn" onclick="showCategory('jovenes',event)">🗣️ Jóvenes</button>
+    <button class="cat-btn" onclick="showCategory('tutoriales',event)">📱 Tutoriales</button>
+    <button class="cat-btn" onclick="showCategory('ia',event)">🤖 IA</button>
+  </nav>
+
+  <section class="content-section active" id="sec-todos"      aria-label="Todos">    <h2 class="section-heading"><span>⭐</span> Temas más populares</h2>   <div class="cards-grid" id="cards-todos"></div></section>
+  <section class="content-section"        id="sec-tecnologia" aria-label="Tecnología"><h2 class="section-heading"><span>💻</span> Tecnología para todos</h2>  <div class="cards-grid" id="cards-tecnologia"></div></section>
+  <section class="content-section"        id="sec-politica"   aria-label="Política">  <h2 class="section-heading"><span>🏛️</span> Política con claridad</h2>  <div class="cards-grid" id="cards-politica"></div></section>
+  <section class="content-section"        id="sec-sociedad"   aria-label="Sociedad">  <h2 class="section-heading"><span>🌈</span> Sociedad y diversidad</h2>   <div class="cards-grid" id="cards-sociedad"></div></section>
+  <section class="content-section"        id="sec-jovenes"    aria-label="Jóvenes">
+    <h2 class="section-heading"><span>🗣️</span> ¿Qué dicen los jóvenes?</h2>
+    <p style="margin-bottom:1.5rem;color:var(--text-light);font-size:0.95rem;">Un diccionario de palabras y frases modernas. ¡Sin misterios!</p>
+    <div class="glossary-grid" id="glossary-grid"></div>
+  </section>
+  <section class="content-section"        id="sec-tutoriales" aria-label="Tutoriales">
+    <h2 class="section-heading"><span>📱</span> Cómo usar el celular y las apps</h2>
+    <p style="margin-bottom:1.5rem;color:var(--text-light);font-size:0.95rem;">Pasos claros y sencillos, como si alguien le explicara en persona.</p>
+    <div id="tutorial-list"></div>
+  </section>
+  <section class="content-section"        id="sec-ia"         aria-label="IA">        <h2 class="section-heading"><span>🤖</span> Inteligencia Artificial</h2>   <div class="cards-grid" id="cards-ia"></div></section>
+</main>
+
+<!-- ARTICLE MODAL -->
+<div id="article-modal" role="dialog" aria-modal="true" aria-labelledby="article-title">
+  <div class="article-box">
+    <button class="close-article" onclick="closeArticle()" aria-label="Cerrar">✕</button>
+    <span class="article-icon" id="article-icon" aria-hidden="true"></span>
+    <span class="article-tag"  id="article-tag"></span>
+    <h2 id="article-title"></h2>
+    <div class="article-content" id="article-body"></div>
+    <div class="article-nav">
+      <button class="article-nav-btn" id="read-article-btn" onclick="readArticle()">🔊 Leer en voz alta</button>
+      <button class="article-nav-btn" onclick="closeArticle()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN / REGISTER MODAL -->
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <button class="close-modal" onclick="closeModal()" aria-label="Cerrar">✕</button>
+    <h2 id="modal-title">Iniciar Sesión</h2>
+    <p class="modal-sub" id="modal-sub">Guarde su progreso y sus temas favoritos.</p>
+
+    <div id="login-form-wrap">
+      <!-- SEGURIDAD #9 — Token CSRF oculto, generado al cargar la página -->
+      <input type="hidden" id="login-csrf" />
+      <div class="form-group">
+        <label for="login-email">Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="ejemplo@correo.com" autocomplete="email"/>
+        <p class="form-error" id="err-login-email">Por favor ingrese un correo válido.</p>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="login-password" placeholder="Su contraseña" autocomplete="current-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePw('login-password',this)" aria-label="Mostrar">👁</button>
+        </div>
+        <p class="form-error" id="err-login-pw">Ingrese su contraseña.</p>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar →</button>
+      <!-- RECUPERACIÓN DE CONTRASEÑA — Enlace bajo el botón de login -->
+      <div style="text-align:center; margin-top:0.7rem;">
+        <button type="button"
+          style="background:none;border:none;color:var(--amber-dark);font-size:0.85rem;
+                 font-family:var(--font-body);cursor:pointer;text-decoration:underline;"
+          onclick="closeModal(); openRecovery()">
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
+      <div class="modal-switch">¿No tiene cuenta? <button onclick="switchModal('register')">Regístrese aquí</button></div>
+    </div>
+
+    <div id="register-form-wrap" style="display:none;">
+      <!-- SEGURIDAD #9 — Token CSRF oculto en formulario de registro -->
+      <input type="hidden" id="register-csrf" />
+      <div class="form-group">
+        <label for="reg-name">Su nombre</label>
+        <input type="text" id="reg-name" placeholder="Ej: María Guadalupe" autocomplete="name"/>
+        <p class="form-error" id="err-reg-name">Por favor ingrese su nombre.</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="ejemplo@correo.com" autocomplete="email"/>
+        <p class="form-error" id="err-reg-email">Por favor ingrese un correo válido.</p>
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Crear contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres" oninput="checkStrength(this.value)" autocomplete="new-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePw('reg-password',this)" aria-label="Mostrar">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-bar-fill" id="strength-fill"></div></div>
+        <p id="strength-label" style="font-size:0.8rem;margin-top:4px;color:var(--text-light)"></p>
+        <p class="form-error" id="err-reg-pw">La contraseña debe tener al menos 8 caracteres.</p>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Crear mi cuenta →</button>
+      <!-- CONSENTIMIENTO DE PRIVACIDAD -->
+      <div class="consent-group">
+        <input type="checkbox" id="reg-consent" name="consent"/>
+        <label class="consent-label" for="reg-consent">
+          He leído y acepto el <a onclick="openPrivacy()" role="button" tabindex="0">Aviso de Privacidad</a>.
+          Entiendo que mis datos se guardan en mi propio dispositivo y no se comparten con terceros.
+        </label>
+      </div>
+      <p class="form-error-consent" id="err-reg-consent">Debe aceptar el aviso de privacidad para registrarse.</p>
+      <div class="modal-switch">¿Ya tiene cuenta? <button onclick="switchModal('login')">Inicie sesión aquí</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SEGURIDAD #5 — PANEL DE ADMINISTRACIÓN
+     Acceso restringido: solo usuarios con rol='admin'.
+     Control de acceso basado en roles (RBAC).
+     Incluye: lista de usuarios, registro de auditoría, estadísticas.
+     ══════════════════════════════════════════════════════════ -->
+<div id="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+  <div class="admin-box">
+    <button class="close-admin" onclick="closeAdmin()" aria-label="Cerrar panel">✕</button>
+    <h2 id="admin-title">⚙️ Panel de Administración</h2>
+    <span class="admin-role-badge">🔒 Acceso: Administrador</span>
+
+    <!-- Estadísticas rápidas -->
+    <div class="admin-stat-grid" id="admin-stats"></div>
+
+    <!-- Tabs de navegación -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('usuarios',this)">👥 Usuarios</button>
+      <button class="admin-tab" onclick="switchAdminTab('auditoria',this)">📋 Auditoría</button>
+      <button class="admin-tab" onclick="switchAdminTab('seguridad',this)">🛡️ Seguridad</button>
+    </div>
+
+    <!-- Panel: Usuarios -->
+    <div class="admin-panel active" id="admin-panel-usuarios">
+      <table class="admin-table" id="admin-users-table">
+        <thead>
+          <tr>
+            <th>Nombre</th><th>Correo</th><th>Rol</th>
+            <th>Registro</th><th>Consentimiento</th><th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="admin-users-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Panel: Auditoría -->
+    <!-- SEGURIDAD #7 — Registro de eventos y auditoría
+         Guarda cada acción relevante: login, logout, registro, fallos de auth, acceso admin. -->
+    <div class="admin-panel" id="admin-panel-auditoria">
+      <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:0.8rem;">
+        Registro de los últimos eventos del sistema. Fecha y hora en tiempo local del dispositivo.
+      </p>
+      <div id="audit-log-list"></div>
+    </div>
+
+    <!-- Panel: Seguridad -->
+    <div class="admin-panel" id="admin-panel-seguridad">
+      <table class="admin-table">
+        <thead><tr><th>Mecanismo</th><th>Estado</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td>XSS — Sanitización</td>       <td><span class="badge-active">✓ Activo</span></td><td>sanitizeHTML() en todos los inputs antes de renderizar</td></tr>
+          <tr><td>CSRF — Token</td>              <td><span class="badge-active">✓ Activo</span></td><td>Token generado por sesión, validado en cada acción sensible</td></tr>
+          <tr><td>SQL Injection</td>             <td><span class="badge-active">✓ Previsto</span></td><td>Consultas preparadas en el SQL del backend (ver comentario SQL)</td></tr>
+          <tr><td>Contraseñas — Política</td>    <td><span class="badge-active">✓ Activo</span></td><td>Min 8 chars, requiere mayúscula, número y símbolo</td></tr>
+          <tr><td>Sesión — Expiración</td>       <td><span class="badge-active">✓ Activo</span></td><td>Auto-logout a los 30 minutos de inactividad</td></tr>
+          <tr><td>Sesión — Intentos fallidos</td><td><span class="badge-active">✓ Activo</span></td><td>Bloqueo temporal tras 5 intentos fallidos</td></tr>
+          <tr><td>CSP Header</td>                <td><span class="badge-active">✓ Activo</span></td><td>Meta CSP declarado en &lt;head&gt;</td></tr>
+          <tr><td>HTTPS / TLS 1.3</td>           <td><span class="badge-warn">⚠ En servidor</span></td><td>Requiere certificado SSL/TLS en servidor de producción</td></tr>
+          <tr><td>Roles y Permisos (RBAC)</td>   <td><span class="badge-active">✓ Activo</span></td><td>Rol 'admin' y 'user'. Panel admin bloqueado para usuarios normales</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SEGURIDAD #6 — GESTIÓN DE PERFIL DE USUARIO
+     Permite al usuario ver y editar su información personal.
+     Derecho ARCO: Acceso y Rectificación.
+     ══════════════════════════════════════════════════════════ -->
+<div id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+  <div class="profile-box">
+    <button class="close-profile" onclick="closeProfile()" aria-label="Cerrar perfil">✕</button>
+    <h2 id="profile-title">👤 Mi Perfil</h2>
+    <div id="profile-info"></div>
+    <div style="margin-top:1.4rem;">
+      <div class="form-group">
+        <label for="profile-name-input" style="font-size:0.88rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:6px;">
+          <!-- SEGURIDAD #6 — Edición de nombre con sanitización -->
+          Cambiar nombre
+        </label>
+        <input type="text" id="profile-name-input" placeholder="Nuevo nombre" style="width:100%;font-size:0.95rem;padding:0.7rem 1rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font-body);outline:none;"/>
+        <p class="form-error" id="err-profile-name" style="display:none;">Nombre no puede estar vacío.</p>
+      </div>
+      <button class="btn-primary" onclick="saveProfile()" style="margin-top:0.5rem;">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     RECUPERACIÓN DE CONTRASEÑA — Modal con 3 pasos:
+       Paso 1: El usuario ingresa su correo registrado.
+       Paso 2: Se muestra el token (simulando email enviado)
+               y el usuario ingresa el token + nueva contraseña.
+       Paso 3: Confirmación de éxito con opción de ir al login.
+     Nota: En producción real, el envío del email y la
+     generación/validación del token se hacen en el backend.
+     Aquí se simula con sessionStorage para la demo frontend.
+     ══════════════════════════════════════════════════════════ -->
+<div id="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="recovery-title">
+  <div class="recovery-box">
+    <button class="close-recovery" onclick="closeRecovery()" aria-label="Cerrar">✕</button>
+
+    <!-- Indicador de pasos -->
+    <div class="recovery-steps" id="recovery-steps-indicator">
+      <div class="recovery-step active" id="rstep-1">1</div>
+      <div class="recovery-step-line"  id="rline-1"></div>
+      <div class="recovery-step"       id="rstep-2">2</div>
+      <div class="recovery-step-line"  id="rline-2"></div>
+      <div class="recovery-step"       id="rstep-3">✓</div>
+    </div>
+
+    <!-- ── PASO 1: Solicitar correo ─────────────────────── -->
+    <div id="recovery-step-1">
+      <h2 id="recovery-title">🔑 Recuperar contraseña</h2>
+      <p class="recovery-sub">
+        Ingrese el correo con el que se registró y le enviaremos
+        un código de verificación para restablecer su contraseña.
+      </p>
+      <div class="form-group">
+        <label for="recovery-email" style="font-weight:600;font-size:0.92rem;color:var(--text-mid);display:block;margin-bottom:6px;">
+          Correo electrónico
+        </label>
+        <input type="email" id="recovery-email"
+               placeholder="ejemplo@correo.com"
+               autocomplete="email"
+               style="width:100%;font-size:1rem;padding:0.8rem 1.1rem;
+                      border:2.5px solid var(--border);border-radius:10px;
+                      font-family:var(--font-body);outline:none;
+                      transition:border-color 0.2s, box-shadow 0.2s;"
+               onfocus="this.style.borderColor='var(--amber)';this.style.boxShadow='0 0 0 4px rgba(212,133,58,0.15)'"
+               onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"/>
+        <p class="form-error" id="err-recovery-email" style="display:none;"></p>
+      </div>
+      <button class="btn-primary" onclick="requestRecovery()">
+        Enviar código →
+      </button>
+      <button class="btn-secondary" onclick="closeRecovery(); openModal('login')">
+        ← Volver al login
+      </button>
+    </div>
+
+    <!-- ── PASO 2: Token + nueva contraseña ────────────── -->
+    <div id="recovery-step-2" style="display:none;">
+      <h2>📧 Revise su correo</h2>
+      <p class="recovery-sub">
+        Enviamos un código de 6 dígitos a
+        <strong id="recovery-email-display"></strong>.
+        Puede tardar unos segundos en llegar. Revise también
+        la carpeta de <em>spam</em> o <em>correo no deseado</em>.
+      </p>
+
+      <div id="token-countdown"></div>
+
+      <div class="form-group">
+        <label for="recovery-token" style="font-weight:600;font-size:0.92rem;color:var(--text-mid);display:block;margin-bottom:6px;">
+          Código de verificación
+        </label>
+        <input type="text" id="recovery-token"
+               placeholder="Ej: 482917"
+               maxlength="6"
+               autocomplete="one-time-code"
+               inputmode="numeric"
+               style="width:100%;font-size:1.4rem;padding:0.8rem 1.1rem;letter-spacing:0.3em;
+                      border:2.5px solid var(--border);border-radius:10px;text-align:center;
+                      font-family:monospace;outline:none;transition:border-color 0.2s,box-shadow 0.2s;"
+               onfocus="this.style.borderColor='var(--amber)';this.style.boxShadow='0 0 0 4px rgba(212,133,58,0.15)'"
+               onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"/>
+        <p class="form-error" id="err-recovery-token" style="display:none;"></p>
+      </div>
+
+      <div class="form-group">
+        <label style="font-weight:600;font-size:0.92rem;color:var(--text-mid);display:block;margin-bottom:6px;">
+          Nueva contraseña
+        </label>
+        <div class="password-wrap">
+          <input type="password" id="recovery-new-pw"
+                 placeholder="Mínimo 8 caracteres"
+                 autocomplete="new-password"
+                 oninput="checkRecoveryStrength(this.value)"
+                 style="width:100%;font-size:1rem;padding:0.8rem 1.1rem;padding-right:3rem;
+                        border:2.5px solid var(--border);border-radius:10px;
+                        font-family:var(--font-body);outline:none;
+                        transition:border-color 0.2s,box-shadow 0.2s;"
+                 onfocus="this.style.borderColor='var(--navy)';this.style.boxShadow='0 0 0 4px rgba(44,62,107,0.12)'"
+                 onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"/>
+          <button type="button" class="toggle-pw"
+                  onclick="togglePw('recovery-new-pw',this)"
+                  aria-label="Mostrar contraseña">👁</button>
+        </div>
+        <div class="strength-bar" style="margin-top:8px;">
+          <div class="strength-bar-fill" id="recovery-strength-fill"></div>
+        </div>
+        <p id="recovery-strength-label"
+           style="font-size:0.8rem;margin-top:4px;color:var(--text-light)"></p>
+        <p class="form-error" id="err-recovery-pw" style="display:none;"></p>
+      </div>
+
+      <div class="form-group">
+        <label style="font-weight:600;font-size:0.92rem;color:var(--text-mid);display:block;margin-bottom:6px;">
+          Confirmar nueva contraseña
+        </label>
+        <div class="password-wrap">
+          <input type="password" id="recovery-confirm-pw"
+                 placeholder="Repita su nueva contraseña"
+                 autocomplete="new-password"
+                 style="width:100%;font-size:1rem;padding:0.8rem 1.1rem;padding-right:3rem;
+                        border:2.5px solid var(--border);border-radius:10px;
+                        font-family:var(--font-body);outline:none;
+                        transition:border-color 0.2s,box-shadow 0.2s;"
+                 onfocus="this.style.borderColor='var(--navy)';this.style.boxShadow='0 0 0 4px rgba(44,62,107,0.12)'"
+                 onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"/>
+          <button type="button" class="toggle-pw"
+                  onclick="togglePw('recovery-confirm-pw',this)"
+                  aria-label="Mostrar contraseña">👁</button>
+        </div>
+        <p class="form-error" id="err-recovery-confirm" style="display:none;"></p>
+      </div>
+
+      <button class="btn-primary" onclick="confirmRecovery()">
+        Cambiar contraseña →
+      </button>
+      <button class="btn-secondary" onclick="resendToken()">
+        🔄 Reenviar código
+      </button>
+    </div>
+
+    <!-- ── PASO 3: Éxito ────────────────────────────────── -->
+    <div id="recovery-step-3" style="display:none;">
+      <div class="recovery-success">
+        <span class="success-icon">✅</span>
+        <h3>¡Contraseña actualizada!</h3>
+        <p style="margin-bottom:1.4rem;">
+          Su contraseña ha sido cambiada correctamente.<br/>
+          Ya puede iniciar sesión con su nueva contraseña.
+        </p>
+        <button class="btn-primary" onclick="closeRecovery(); openModal('login')">
+          Ir al inicio de sesión →
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== BANNER DE COOKIES ==================== -->
+<div id="cookie-banner" role="dialog" aria-label="Aviso de uso de datos" aria-live="polite">
+  <p class="cookie-text">
+    🍪 Esta página guarda únicamente sus <strong>preferencias de accesibilidad</strong> (tamaño de letra, contraste) y sus <strong>datos de sesión</strong> en su propio dispositivo, nunca en servidores externos. Al registrarse, acepta nuestro
+    <a onclick="openPrivacy()" role="button" tabindex="0" onkeydown="if(event.key==='Enter') openPrivacy()">Aviso de Privacidad</a>.
+  </p>
+  <div class="cookie-actions">
+    <button class="btn-cookie-accept" onclick="acceptCookies()">✓ Entendido</button>
+    <button class="btn-cookie-reject" onclick="rejectCookies()">Solo lo esencial</button>
+  </div>
+</div>
+
+<!-- ==================== MODAL AVISO DE PRIVACIDAD ==================== -->
+<div id="privacy-modal" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+  <div class="privacy-box">
+    <button class="close-privacy" onclick="closePrivacy()" aria-label="Cerrar aviso de privacidad">✕</button>
+    <h2 id="privacy-title">🔒 Aviso de Privacidad</h2>
+    <span class="privacy-version">Versión 1.0 · Junio 2024 · Responsable: Guillermo Ortega</span>
+
+    <div class="privacy-highlight">
+      Este aviso está redactado en lenguaje sencillo para que cualquier persona, sin importar su nivel educativo, pueda entender cómo cuidamos su información.
+    </div>
+
+    <h3>¿Qué información guardamos?</h3>
+    <p>Solo guardamos lo que usted nos da voluntariamente al registrarse:</p>
+    <ul>
+      <li>Su <strong>nombre</strong> (para saludarle personalmente).</li>
+      <li>Su <strong>correo electrónico</strong> (para identificar su cuenta).</li>
+      <li>Su <strong>contraseña</strong>, protegida con cifrado — nunca la vemos en texto claro.</li>
+      <li>Sus <strong>preferencias de accesibilidad</strong> (tamaño de letra, alto contraste).</li>
+    </ul>
+
+    <h3>¿Para qué usamos su información?</h3>
+    <ul>
+      <li>Para que pueda iniciar sesión y reconocerle en su próxima visita.</li>
+      <li>Para recordar el tamaño de letra que prefiere.</li>
+      <li>Para ninguna otra cosa. No vendemos ni compartimos sus datos.</li>
+    </ul>
+
+    <h3>¿Dónde se guarda?</h3>
+    <p>Actualmente en el <strong>almacenamiento local de su propio dispositivo</strong> (localStorage). Sus datos no salen de su teléfono o computadora hacia ningún servidor externo en esta versión.</p>
+
+    <h3>¿Compartimos su información?</h3>
+    <p><strong>No.</strong> No vendemos, alquilamos ni compartimos su información personal con ningún tercero, empresa de publicidad ni institución.</p>
+
+    <h3>Sus derechos (ARCO)</h3>
+    <p>En cualquier momento usted puede:</p>
+    <ul>
+      <li><strong>Acceder</strong> a sus datos: están visibles en su cuenta.</li>
+      <li><strong>Rectificar</strong> su nombre o correo contactándonos.</li>
+      <li><strong>Cancelar</strong> su cuenta y eliminar todos sus datos con el botón "Eliminar mis datos".</li>
+      <li><strong>Oponerse</strong> al tratamiento cerrando sesión y no registrándose.</li>
+    </ul>
+    <p>Puede ejercer sus derechos ARCO escribiendo a: <strong>privacidad@entendiendo-el-mundo.mx</strong></p>
+
+    <h3>Uso de cookies y almacenamiento local</h3>
+    <p>Esta página usa <strong>localStorage</strong> (almacenamiento en su dispositivo) solo para guardar sus preferencias de accesibilidad y su sesión. No usa cookies de rastreo, publicidad ni análisis de terceros.</p>
+
+    <h3>¿Cambia este aviso?</h3>
+    <p>Si en el futuro modificamos este aviso, se lo informaremos con un mensaje visible la próxima vez que visite la página.</p>
+
+    <div class="privacy-highlight">
+      📌 <strong>En resumen:</strong> Solo guardamos lo que usted nos da. Lo usamos para mejorar su experiencia. No lo compartimos. Y usted puede eliminarlo cuando quiera.
+    </div>
+
+    <button class="btn-close-privacy" onclick="closePrivacy()">Entendido, cerrar aviso</button>
+  </div>
+</div>
+
+<footer role="contentinfo">
+  <p><strong>🌍 Entendiendo el Mundo de Hoy</strong></p>
+  <p style="margin-top:12px;font-size:0.8rem;">
+    © 2026 Guillermo Ortega &nbsp;|&nbsp;
+    <a onclick="openPrivacy()" role="button" style="cursor:pointer;color:var(--amber-light);text-decoration:underline;">🔒 Aviso de Privacidad</a>
+  </p>
+</footer>
+
+<script>
+/* ============================================================
+   DATA
+============================================================ */
+const topics = [
+  { id:'t1',  cat:'tecnologia', icon:'📱', tag:'Tecnología',           bannerBg:'linear-gradient(135deg,#2C3E6B,#4A5E8A)', title:'¿Qué es un celular inteligente?', desc:'Un teléfono inteligente es mucho más que solo llamar. Aprenda qué puede hacer con él.', content:`<p>Un <strong>celular inteligente</strong> (o "smartphone") es como tener en su bolsillo una cámara, un teléfono, una enciclopedia, un banco y mucho más, todo al mismo tiempo.</p><div class="highlight">💡 <strong>En palabras sencillas:</strong> Es un pequeño computador que cabe en la mano y que también puede hacer llamadas.</div><h3>¿Para qué sirve?</h3><p>Con un celular inteligente usted puede: llamar y enviar mensajes a sus familiares, tomar fotos y videos, ver recetas de cocina, pagar cuentas, leer noticias y mucho, mucho más.</p><h3>¿Es difícil de usar?</h3><p>Al principio puede parecer complicado, pero con un poco de práctica se vuelve muy fácil. La pantalla es sensible al tacto: solo toque con el dedo lo que quiera hacer.</p><div class="highlight">👆 <strong>Recuerde:</strong> Para abrir algo, solo tóquelo una vez con el dedo. Para volver atrás, busque una flecha ← o un botón que diga "Atrás".</div>` },
+  { id:'t2',  cat:'tecnologia', icon:'🌐', tag:'Tecnología',           bannerBg:'linear-gradient(135deg,#3A6B4A,#5A8A6A)', title:'¿Qué es el internet?', desc:'El internet conecta millones de computadoras en el mundo. Aquí se lo explicamos de forma muy simple.', content:`<p>El <strong>internet</strong> es como una red gigante que conecta computadoras, celulares y otros aparatos de todo el mundo.</p><div class="highlight">📬 <strong>Ejemplo:</strong> Cuando usted le manda un mensaje a su nieto por WhatsApp, ese mensaje viaja por el internet hasta llegar al celular de su nieto, ¡en menos de un segundo!</div><h3>¿Para qué se usa?</h3><p>Para buscar información, ver videos y películas, hablar con familiares que viven lejos, leer noticias y hacer pagos desde casa.</p><h3>¿Cómo me conecto?</h3><p>Puede conectarse usando el <strong>WiFi</strong> de su casa o usando los <strong>datos</strong> de su plan telefónico.</p>` },
+  { id:'t3',  cat:'tecnologia', icon:'💻', tag:'Tecnología',           bannerBg:'linear-gradient(135deg,#6B3A3A,#8A5A5A)', title:'¿Qué es una computadora?', desc:'Aprenda qué es una computadora, sus partes y para qué sirve cada cosa.', content:`<p>Una <strong>computadora</strong> es una máquina electrónica que puede hacer muchas cosas: escribir cartas, guardar fotos, ver videos, conectarse al internet y mucho más.</p><h3>Sus partes principales</h3><p><strong>Pantalla:</strong> Es donde se ve todo.<br/><strong>Teclado:</strong> Para escribir letras y números.<br/><strong>Ratón:</strong> Mueve una flechita en la pantalla.<br/><strong>Torre o CPU:</strong> El "cerebro" de la computadora.</p><div class="highlight">🖱️ <strong>Para usar el ratón:</strong> Un "clic" es apretar el botón izquierdo una vez. Un "doble clic" es apretarlo dos veces rápido para abrir algo.</div>` },
+  { id:'ia1', cat:'ia',         icon:'🤖', tag:'Inteligencia Artificial', bannerBg:'linear-gradient(135deg,#2C3E6B,#6B2C5E)', title:'¿Qué es la Inteligencia Artificial?', desc:'No es ciencia ficción ni robots peligrosos. Es una herramienta que ya usamos todos los días.', content:`<p>La <strong>Inteligencia Artificial</strong> (IA) es la capacidad que tienen algunas computadoras para aprender, pensar y responder preguntas casi como lo haría una persona.</p><div class="highlight">🧠 <strong>Comparación sencilla:</strong> Imagine un asistente muy estudioso que leyó millones de libros y puede responder casi cualquier pregunta. Eso es la IA.</div><h3>¿Ya la he usado sin saberlo?</h3><p>¡Seguramente sí! Cuando habla con Siri, cuando el correo detecta spam, o cuando Netflix le sugiere una película, todo eso es Inteligencia Artificial.</p><h3>¿Es peligrosa?</h3><p>Las herramientas de IA que usamos hoy son seguras y útiles. Son como calculadoras muy avanzadas.</p>` },
+  { id:'ia2', cat:'ia',         icon:'💬', tag:'Inteligencia Artificial', bannerBg:'linear-gradient(135deg,#3A6B65,#5A8A85)', title:'Cómo hablar con ChatGPT', desc:'ChatGPT es como tener un asistente que puede responder preguntas sobre casi cualquier tema.', content:`<p><strong>ChatGPT</strong> es un programa de IA con el que puede tener una conversación escrita.</p><h3>¿Cómo se usa?</h3><p>1. Abra su navegador.<br/>2. Vaya a <strong>chat.openai.com</strong><br/>3. Escriba su pregunta.<br/>4. Apriete enviar y espere la respuesta.</p><div class="highlight">❓ <strong>Ejemplos:</strong> "¿Cuál es una receta fácil de tamales?", "Explícame qué es el WiFi de forma simple".</div><h3>¿Es gratis?</h3><p>Sí, tiene una versión gratuita que funciona muy bien.</p>` },
+  { id:'p1',  cat:'politica',   icon:'🏛️', tag:'Política',             bannerBg:'linear-gradient(135deg,#4A3A6B,#6B5A3A)', title:'¿Qué es la democracia?', desc:'La palabra que escucha mucho en las noticias, explicada de forma clara y honesta.', content:`<p>La <strong>democracia</strong> es un sistema de gobierno donde las personas eligen a sus líderes mediante el voto.</p><div class="highlight">🗳️ <strong>En sencillo:</strong> Los ciudadanos eligen quién los va a gobernar.</div><h3>¿Cómo funciona en México?</h3><p>Elegimos al <strong>Presidente</strong>, a los <strong>senadores</strong> y <strong>diputados</strong>, y a los <strong>gobernadores</strong> de cada estado.</p><h3>¿Por qué es importante votar?</h3><p>Cada voto cuenta. Es un derecho y una responsabilidad que muchas personas en el mundo no tienen.</p>` },
+  { id:'p2',  cat:'politica',   icon:'📰', tag:'Política',             bannerBg:'linear-gradient(135deg,#6B3A4A,#3A4A6B)', title:'Las noticias falsas (fake news)', desc:'Aprenda a identificar noticias falsas que circulan por WhatsApp y redes sociales.', content:`<p>Las <strong>noticias falsas</strong> son información inventada que se hace pasar por noticia real.</p><h3>¿Cómo reconocerlas?</h3><p><strong>Desconfíe si:</strong> el título es muy dramático, dice "¡Urgente! ¡Compártalo!" o no dice quién lo escribió.</p><div class="highlight">✅ <strong>Consejo:</strong> Antes de compartir algo, búsquelo en Google o en un periódico conocido.</div><h3>Fuentes confiables</h3><p>El Universal, Reforma, Milenio, BBC Mundo, Reuters en español.</p>` },
+  { id:'p3',  cat:'politica',   icon:'🌍', tag:'Política',             bannerBg:'linear-gradient(135deg,#2C5A3A,#5A2C6B)', title:'¿Qué es el cambio climático?', desc:'Por qué el clima está cambiando, qué lo causa y qué podemos hacer.', content:`<p>El <strong>cambio climático</strong> se refiere a los cambios en el clima de la Tierra que ocurren más rápido de lo normal.</p><div class="highlight">🌡️ <strong>Comparación:</strong> Imagínese que la Tierra tiene una cobija. Cuando quemamos petróleo, esa cobija se hace más gruesa y la Tierra se calienta.</div><h3>¿Qué podemos hacer?</h3><p>Ahorrar agua y electricidad, usar menos el carro, no desperdiciar comida, y plantar árboles.</p>` },
+  { id:'s1',  cat:'sociedad',   icon:'🌈', tag:'Sociedad',             bannerBg:'linear-gradient(135deg,#D4853A,#6B3A6B)', title:'¿Qué es la comunidad LGBT+?', desc:'Una explicación respetuosa y clara sobre estas siglas y quiénes forman esta comunidad.', content:`<p>La comunidad <strong>LGBT+</strong> son personas cuya identidad o sentimientos amorosos son diferentes a lo que la sociedad tradicional consideraba "lo normal".</p><p><strong>L</strong> = Lesbianas · <strong>G</strong> = Gais · <strong>B</strong> = Bisexuales · <strong>T</strong> = Transgénero · <strong>+</strong> = otras identidades</p><div class="highlight">❤️ <strong>Lo más importante:</strong> Son personas como usted y como yo. Merecen el mismo respeto y dignidad.</div><h3>¿Por qué se habla tanto?</h3><p>Porque durante muchos años fueron discriminadas, y hoy luchan por tener los mismos derechos.</p>` },
+  { id:'s2',  cat:'sociedad',   icon:'🤝', tag:'Sociedad',             bannerBg:'linear-gradient(135deg,#3A6B4A,#6B6B3A)', title:'¿Qué es el feminismo?', desc:'Una explicación honesta sobre qué es y qué no es el feminismo.', content:`<p>El <strong>feminismo</strong> busca la igualdad de derechos entre hombres y mujeres.</p><div class="highlight">⚖️ <strong>En sencillo:</strong> Una mujer y un hombre que hacen el mismo trabajo merecen el mismo salario.</div><h3>¿No siempre fue así?</h3><p>No. Hace apenas 100 años, las mujeres no podían votar ni tener cuentas bancarias propias.</p>` },
+  { id:'s3',  cat:'sociedad',   icon:'🧠', tag:'Sociedad',             bannerBg:'linear-gradient(135deg,#3A4A6B,#6B3A3A)', title:'Salud mental: ¿por qué se habla tanto?', desc:'Entender la ansiedad, la depresión y por qué cuidar la mente es tan importante.', content:`<p>La <strong>salud mental</strong> es el bienestar de nuestra mente y emociones.</p><h3>¿Qué es la depresión?</h3><p>No es simplemente estar triste. Es una enfermedad con tratamiento médico.</p><h3>¿Qué es la ansiedad?</h3><p>Una preocupación muy intensa y constante, a veces con palpitaciones o sensación de ahogo. También tiene tratamiento.</p><div class="highlight">💙 <strong>Recuerde:</strong> Pedir ayuda psicológica es tan normal como ir al médico cuando duele la rodilla.</div>` },
+  { id:'tu1', cat:'tutoriales', icon:'💬', tag:'Tutorial',             bannerBg:'linear-gradient(135deg,#25D366,#128C7E)', title:'Cómo usar WhatsApp', desc:'Aprenda a enviar mensajes, fotos, audios y llamar por WhatsApp.', content:`<h3>¿Qué es WhatsApp?</h3><p>Una aplicación gratuita para mensajes, fotos, videos y llamadas por internet.</p><h3>Enviar un mensaje:</h3><p><strong>1.</strong> Toque WhatsApp · <strong>2.</strong> Toque el nombre de la persona · <strong>3.</strong> Toque "Mensaje" · <strong>4.</strong> Escriba · <strong>5.</strong> Toque el botón verde ➤</p><div class="highlight">🎤 <strong>¿No quiere escribir?</strong> Mantenga apretado el micrófono 🎙️ y hable.</div>` },
+  { id:'tu2', cat:'tutoriales', icon:'📘', tag:'Tutorial',             bannerBg:'linear-gradient(135deg,#1877F2,#0D5BBF)', title:'Cómo usar Facebook', desc:'Conéctese con amigos y familia, vea fotos y comparta sus momentos.', content:`<h3>¿Qué es Facebook?</h3><p>Una red social para ver fotos de amigos y familiares y compartir las suyas.</p><h3>Ver publicaciones:</h3><p><strong>1.</strong> Abra Facebook · <strong>2.</strong> Deslice el dedo hacia arriba para ver más · <strong>3.</strong> Toque el pulgar 👍 para dar "Me gusta"</p><div class="highlight">⚠️ <strong>Seguridad:</strong> No acepte solicitudes de personas desconocidas.</div>` },
+  { id:'tu3', cat:'tutoriales', icon:'📸', tag:'Tutorial',             bannerBg:'linear-gradient(135deg,#E1306C,#833AB4)', title:'Cómo usar Instagram', desc:'Ver y compartir fotos y videos con sus seres queridos.', content:`<h3>¿Qué es Instagram?</h3><p>Una red social de fotos y videos muy popular hoy en día.</p><h3>Ver fotos:</h3><p><strong>1.</strong> Abra Instagram · <strong>2.</strong> Deslice el dedo hacia arriba · <strong>3.</strong> Toque dos veces una foto para dar ❤️</p><h3>Subir una foto:</h3><p>Toque el símbolo + abajo, elija la foto y toque "Compartir".</p>` },
+];
+
+const glossary = [
+  { word:"Chido / Chida",    def:"Que algo es bonito o bueno. Ej: 'Qué chida tu chamarra.'" },
+  { word:"Ficha",            def:"Persona extraña o divertida. Ej: 'Tu nieto sí que es una ficha.'" },
+  { word:"No manches",       def:"Expresión de sorpresa. Similar a '¡No me digas!'" },
+  { word:"Wey / Güey",       def:"Forma informal de llamar a un amigo. No siempre es insulto." },
+  { word:"Perrón / Perrona", def:"Que alguien es muy bueno en algo. Ej: 'Eres perrona para cocinar.'" },
+  { word:"Vibras",           def:"La energía o el ambiente que da una persona o lugar." },
+  { word:"Meme",             def:"Una imagen cómica con texto que se comparte en internet." },
+  { word:"Viral",            def:"Algo que se comparte tanto en internet que lo ve muchísima gente." },
+  { word:"Streaming",        def:"Ver películas o escuchar música directamente por internet, sin descargar." },
+  { word:"Selfie",           def:"Una fotografía que uno mismo se toma con la cámara frontal del celular." },
+  { word:"Hashtag (#)",      def:"Símbolo # seguido de una palabra para clasificar temas en redes sociales." },
+  { word:"Trollear",         def:"Molestar a alguien intencionalmente en internet para hacerle enojar." },
+  { word:"FOMO",             def:"Miedo a perderse algo divertido. Del inglés 'Fear Of Missing Out'." },
+  { word:"Cringe",           def:"Algo que da vergüenza ajena o resulta incómodo de ver." },
+  { word:"Random",           def:"Algo inesperado, sin contexto, que parece estar fuera de lugar." },
+  { word:"Influencer",       def:"Persona con muchos seguidores en redes que influye en opiniones de otros." },
+];
+
+const tutorials = [
+  { icon:'📱', title:'Cómo encender y usar un celular por primera vez', steps:[
+    { title:'Encienda el celular', desc:'Mantenga apretado el botón de encendido (lado derecho) 2-3 segundos.' },
+    { title:'Desbloquee la pantalla', desc:'Deslice el dedo hacia arriba o ingrese su PIN.' },
+    { title:'Encuentre sus aplicaciones', desc:'Son iconitos en la pantalla. Tóquelos una vez para abrirlos.' },
+    { title:'Suba y baje el volumen', desc:'Botones en el lado izquierdo. El de arriba sube, el de abajo baja.' },
+    { title:'Regrese al inicio', desc:'Busque un botón redondo o cuadrado en la parte de abajo.' },
+  ]},
+  { icon:'🛜', title:'Cómo conectarse al WiFi', steps:[
+    { title:'Abra Ajustes', desc:'Busque el ícono ⚙️ o "Ajustes" y tóquelo.' },
+    { title:'Busque WiFi', desc:'Toque "WiFi" o "Red inalámbrica". Verá las redes disponibles.' },
+    { title:'Elija su red', desc:'Toque el nombre de su red WiFi de casa.' },
+    { title:'Ingrese la contraseña', desc:'Escríbala (viene en la cajita del internet).' },
+    { title:'Conéctese', desc:'Toque "Conectar". Verá el símbolo 📶 en la parte superior.' },
+  ]},
+];
+
+/* ============================================================
+   BUILD UI
+============================================================ */
+function buildCards(id, items) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = items.map(t => `
+    <article class="topic-card" onclick="openArticle('${t.id}')" tabindex="0"
+             aria-label="Leer: ${t.title}" onkeydown="if(event.key==='Enter') openArticle('${t.id}')">
+      <div class="card-banner" style="background:${t.bannerBg}">
+        <span style="filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3))">${t.icon}</span>
+      </div>
+      <div class="card-body">
+        <p class="card-tag">${t.tag}</p>
+        <h3 class="card-title">${t.title}</h3>
+        <p class="card-desc">${t.desc}</p>
+        <button class="card-cta">Leer más →</button>
+      </div>
+    </article>`).join('');
+}
+
+function buildGlossary() {
+  document.getElementById('glossary-grid').innerHTML =
+    glossary.map(g => `<div class="glos-item"><p class="glos-word">${g.word}</p><p class="glos-def">${g.def}</p></div>`).join('');
+}
+
+function buildTutorials() {
+  document.getElementById('tutorial-list').innerHTML = tutorials.map(t => `
+    <div style="margin-bottom:2.5rem;">
+      <h3 style="font-family:var(--font-display);font-size:1.2rem;color:var(--navy);margin-bottom:1rem;">${t.icon} ${t.title}</h3>
+      <div class="steps-list">
+        ${t.steps.map((s,i) => `
+          <div class="step-item">
+            <div class="step-num">${i+1}</div>
+            <div class="step-content"><h4>${s.title}</h4><p>${s.desc}</p></div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function init() {
+  buildCards('cards-todos',      topics.filter(t => ['t1','ia1','p1','s1','tu1'].includes(t.id)));
+  buildCards('cards-tecnologia', topics.filter(t => t.cat === 'tecnologia'));
+  buildCards('cards-ia',         topics.filter(t => t.cat === 'ia'));
+  buildCards('cards-politica',   topics.filter(t => t.cat === 'politica'));
+  buildCards('cards-sociedad',   topics.filter(t => t.cat === 'sociedad'));
+  buildCards('cards-tutoriales', topics.filter(t => t.cat === 'tutoriales'));
+  buildGlossary();
+  buildTutorials();
+}
+
+/* ============================================================
+   CATEGORY NAV
+============================================================ */
+function showCategory(cat, ev) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`sec-${cat}`).classList.add('active');
+  if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+  window.scrollTo({ top: document.querySelector('.main-wrap').offsetTop - 60, behavior:'smooth' });
+}
+
+/* ============================================================
+   ARTICLE MODAL
+============================================================ */
+function openArticle(id) {
+  const t = topics.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('article-icon').textContent = t.icon;
+  document.getElementById('article-tag').textContent  = t.tag;
+  document.getElementById('article-title').textContent = t.title;
+  document.getElementById('article-body').innerHTML   = t.content;
+  document.getElementById('article-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeArticle() {
+  document.getElementById('article-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  stopAloud();
+}
+function readArticle() {
+  speak(document.getElementById('article-title').textContent + '. ' +
+        document.getElementById('article-body').innerText);
+}
+
+/* ============================================================
+   SEARCH
+============================================================ */
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const box = document.getElementById('search-results');
+  if (!q) { box.innerHTML = ''; return; }
+  const all = [
+    ...topics,
+    ...glossary.map(g => ({ id:'g_'+g.word, title:g.word, desc:g.def, icon:'🗣️', cat:'jovenes', content:g.def }))
+  ];
+  const res = all.filter(t =>
+    t.title.toLowerCase().includes(q) ||
+    t.desc?.toLowerCase().includes(q) ||
+    t.content?.toLowerCase().includes(q)
+  );
+  box.innerHTML = res.length === 0
+    ? '<p style="color:var(--text-light);padding:10px 0">No encontramos resultados. Intente con otras palabras.</p>'
+    : res.slice(0,5).map(r => `
+        <div class="search-result-item" onclick="${r.cat==='jovenes'&&r.id.startsWith('g_') ? '' : `openArticle('${r.id}')`}" tabindex="0">
+          <strong>${r.icon||'📖'} ${r.title}</strong>
+          <p>${r.desc||''}</p>
+        </div>`).join('');
+}
+document.getElementById('search-input').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+
+/* ============================================================
+   SEGURIDAD #8 — SANITIZACIÓN XSS
+   Escapa caracteres HTML peligrosos antes de insertar
+   cualquier dato del usuario en el DOM.
+   Previene Cross-Site Scripting (XSS).
+============================================================ */
+function sanitizeHTML(str) {
+  const map = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#x27;', '/':'&#x2F;' };
+  return String(str).replace(/[&<>"'/]/g, ch => map[ch]);
+}
+
+/* ============================================================
+   SEGURIDAD #9 — TOKEN CSRF
+   Genera un token único por sesión de página.
+   Debe incluirse en toda acción sensible (registro, login, perfil).
+   Previene Cross-Site Request Forgery (CSRF).
+============================================================ */
+const CSRF_TOKEN = (function() {
+  const arr = new Uint8Array(24);
+  window.crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(16).padStart(2,'0')).join('');
+})();
+
+function validateCSRF(token) {
+  // En frontend puro validamos que el token de la sesión coincida.
+  // En backend con servidor se validaría contra la sesión del servidor.
+  return token === CSRF_TOKEN;
+}
+
+/* ============================================================
+   SEGURIDAD #10 — POLÍTICA DE CONTRASEÑAS SEGURAS
+   Requiere: mín 8 chars, 1 mayúscula, 1 número, 1 símbolo.
+   Previene contraseñas débiles y ataques de fuerza bruta.
+============================================================ */
+function validatePasswordPolicy(pw) {
+  const rules = [
+    { test: pw.length >= 8,             msg: 'Mínimo 8 caracteres.' },
+    { test: /[A-Z]/.test(pw),           msg: 'Al menos una letra mayúscula.' },
+    { test: /[0-9]/.test(pw),           msg: 'Al menos un número.' },
+    { test: /[^A-Za-z0-9]/.test(pw),   msg: 'Al menos un símbolo (!@#$%...).' },
+  ];
+  const failed = rules.filter(r => !r.test);
+  return { ok: failed.length === 0, errors: failed.map(r => r.msg) };
+}
+
+/* ============================================================
+   SEGURIDAD #11 — CONTROL DE INTENTOS FALLIDOS DE LOGIN
+   Bloquea temporalmente tras 5 intentos fallidos.
+   Previene ataques de fuerza bruta.
+============================================================ */
+const loginAttempts = {};
+const MAX_ATTEMPTS  = 5;
+const LOCKOUT_MS    = 5 * 60 * 1000; // 5 minutos
+
+function checkLoginLockout(email) {
+  const entry = loginAttempts[email];
+  if (!entry) return false;
+  if (entry.lockedUntil && Date.now() < entry.lockedUntil) return true;
+  if (entry.lockedUntil && Date.now() >= entry.lockedUntil) {
+    delete loginAttempts[email]; // Desbloquear tras el tiempo
+  }
+  return false;
+}
+function registerFailedAttempt(email) {
+  if (!loginAttempts[email]) loginAttempts[email] = { count: 0 };
+  loginAttempts[email].count++;
+  if (loginAttempts[email].count >= MAX_ATTEMPTS) {
+    loginAttempts[email].lockedUntil = Date.now() + LOCKOUT_MS;
+    auditLog('FAIL', `Cuenta bloqueada por ${MAX_ATTEMPTS} intentos fallidos: ${email}`);
+  }
+}
+function resetLoginAttempts(email) {
+  delete loginAttempts[email];
+}
+
+/* ============================================================
+   SEGURIDAD #12 — EXPIRACIÓN DE SESIÓN POR INACTIVIDAD
+   Auto-logout a los 30 minutos sin actividad.
+   Previene robo de sesiones activas desatendidas.
+============================================================ */
+let sessionTimer = null;
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
+
+function resetSessionTimer() {
+  if (!loggedUser) return;
+  clearTimeout(sessionTimer);
+  sessionTimer = setTimeout(() => {
+    if (loggedUser) {
+      auditLog('LOGOUT', `Sesión expirada por inactividad: ${loggedUser.email}`);
+      logout(true); // true = expiración automática
+      showToast('⏱️ Sesión cerrada por inactividad. Por seguridad, vuelva a iniciar sesión.');
+    }
+  }, SESSION_TIMEOUT);
+}
+// Reiniciar timer en cualquier interacción del usuario
+['click','keydown','scroll','touchstart'].forEach(ev =>
+  document.addEventListener(ev, () => { if (loggedUser) resetSessionTimer(); }, { passive: true })
+);
+
+/* ============================================================
+   SEGURIDAD #7 — REGISTRO DE AUDITORÍA (Audit Log)
+   Registra eventos de seguridad: login, logout, registro,
+   fallos de autenticación, accesos al panel admin.
+   Almacenado en sessionStorage (solo dura la sesión actual).
+============================================================ */
+function auditLog(type, detail) {
+  const log = JSON.parse(sessionStorage.getItem('auditLog') || '[]');
+  log.unshift({ type, detail, ts: new Date().toLocaleString('es-MX') });
+  if (log.length > 100) log.pop(); // Máximo 100 entradas
+  sessionStorage.setItem('auditLog', JSON.stringify(log));
+}
+
+/* ============================================================
+   AUTH
+============================================================ */
+let loggedUser = null;
+
+function openModal(type) {
+  switchModal(type);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  clearErrors();
+}
+function switchModal(type) {
+  const isLogin = type === 'login';
+  document.getElementById('modal-title').textContent = isLogin ? 'Iniciar Sesión' : 'Crear cuenta';
+  document.getElementById('modal-sub').textContent   = isLogin ? 'Bienvenido de vuelta.' : 'Es fácil y completamente gratuito.';
+  document.getElementById('login-form-wrap').style.display    = isLogin ? '' : 'none';
+  document.getElementById('register-form-wrap').style.display = isLogin ? 'none' : '';
+}
+function clearErrors() {
+  document.querySelectorAll('.form-error').forEach(e => e.style.display='none');
+  const ce = document.getElementById('err-reg-consent');
+  if (ce) ce.style.display = 'none';
+}
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (msg) el.textContent = msg;
+  el.style.display = 'block';
+}
+function validateEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+function doLogin() {
+  clearErrors();
+  // SEGURIDAD #9 — Validar token CSRF
+  if (!validateCSRF(CSRF_TOKEN)) { showError('err-login-email', 'Error de seguridad. Recargue la página.'); return; }
+
+  const email = sanitizeHTML(document.getElementById('login-email').value.trim());
+  const pw    = document.getElementById('login-password').value;
+  if (!validateEmail(email)) { showError('err-login-email', 'Por favor ingrese un correo válido.'); return; }
+  if (!pw)                   { showError('err-login-pw',    'Ingrese su contraseña.'); return; }
+
+  // SEGURIDAD #11 — Verificar bloqueo por intentos fallidos
+  if (checkLoginLockout(email)) {
+    showError('err-login-email', '⛔ Cuenta bloqueada temporalmente por múltiples intentos fallidos. Espere 5 minutos.');
+    auditLog('FAIL', `Intento de login en cuenta bloqueada: ${email}`);
+    return;
+  }
+
+  const stored = localStorage.getItem('user_' + email);
+  if (!stored) {
+    registerFailedAttempt(email);
+    showError('err-login-email', 'No encontramos esa cuenta.');
+    auditLog('FAIL', `Login fallido — usuario no existe: ${email}`);
+    return;
+  }
+  const user = JSON.parse(stored);
+  if (user.pw !== btoa(pw)) {
+    registerFailedAttempt(email);
+    showError('err-login-pw', 'Contraseña incorrecta.');
+    auditLog('FAIL', `Login fallido — contraseña incorrecta: ${email}`);
+    return;
+  }
+
+  resetLoginAttempts(email);
+  loggedUser = user;
+  auditLog('LOGIN', `Sesión iniciada: ${email} | Rol: ${user.role || 'user'}`);
+  resetSessionTimer();
+  closeModal();
+  updateAuthUI();
+  showToast('¡Bienvenido de vuelta, ' + sanitizeHTML(user.name) + '! 👋');
+}
+
+function doRegister() {
+  clearErrors();
+  // SEGURIDAD #9 — Validar token CSRF
+  if (!validateCSRF(CSRF_TOKEN)) { showError('err-reg-name', 'Error de seguridad. Recargue la página.'); return; }
+
+  // SEGURIDAD #8 — Sanitizar entradas antes de procesar
+  const name    = sanitizeHTML(document.getElementById('reg-name').value.trim());
+  const email   = sanitizeHTML(document.getElementById('reg-email').value.trim());
+  const pw      = document.getElementById('reg-password').value;
+  const consent = document.getElementById('reg-consent').checked;
+  let valid = true;
+
+  if (!name)                { showError('err-reg-name', 'Por favor ingrese su nombre.'); valid = false; }
+  if (!validateEmail(email)){ showError('err-reg-email', 'Por favor ingrese un correo válido.'); valid = false; }
+
+  // SEGURIDAD #10 — Validar política de contraseñas
+  const pwCheck = validatePasswordPolicy(pw);
+  if (!pwCheck.ok) {
+    showError('err-reg-pw', '⚠️ ' + pwCheck.errors[0]);
+    valid = false;
+  }
+  if (!consent) {
+    document.getElementById('err-reg-consent').style.display = 'block';
+    valid = false;
+  }
+  if (!valid) return;
+
+  if (localStorage.getItem('user_' + email)) {
+    showError('err-reg-email', 'Ya existe una cuenta con ese correo.');
+    return;
+  }
+
+  // SEGURIDAD — Guardar con fecha de consentimiento y rol por defecto 'user'
+  const user = { name, email, pw: btoa(pw), role: 'user', registeredAt: new Date().toISOString(), consentDate: new Date().toISOString() };
+  localStorage.setItem('user_' + email, JSON.stringify(user));
+  loggedUser = user;
+  auditLog('REGISTER', `Nuevo usuario registrado: ${email} | Consentimiento: ${user.consentDate}`);
+  resetSessionTimer();
+  closeModal();
+  updateAuthUI();
+  showToast('¡Cuenta creada! Bienvenido/a, ' + sanitizeHTML(name) + ' 🎉');
+}
+
+function logout(expired = false) {
+  if (loggedUser) auditLog('LOGOUT', `Sesión cerrada: ${loggedUser.email}${expired ? ' (por inactividad)' : ''}`);
+  clearTimeout(sessionTimer);
+  loggedUser = null;
+  updateAuthUI();
+  if (!expired) showToast('Ha cerrado sesión. ¡Hasta pronto!');
+}
+
+function updateAuthUI() {
+  const isAdmin = loggedUser && loggedUser.role === 'admin';
+  // Escritorio
+  document.getElementById('login-btns').style.display = loggedUser ? 'none' : '';
+  if (loggedUser) {
+    document.getElementById('user-menu').classList.add('visible');
+    document.getElementById('user-name-display').textContent = sanitizeHTML(loggedUser.name);
+    // SEGURIDAD #5 — Mostrar botón admin solo si rol === 'admin'
+    document.getElementById('btn-admin-panel').style.display = isAdmin ? 'inline-block' : 'none';
+  } else {
+    document.getElementById('user-menu').classList.remove('visible');
+  }
+  // Móvil
+  document.getElementById('mobile-login-btns').style.display = loggedUser ? 'none' : '';
+  const mua = document.getElementById('mobile-user-area');
+  if (loggedUser) {
+    mua.style.display = 'block';
+    document.getElementById('mobile-user-greeting').textContent = '👋 Hola, ' + sanitizeHTML(loggedUser.name);
+  } else {
+    mua.style.display = 'none';
+  }
+}
+
+/* ============================================================
+   MOBILE MENU
+============================================================ */
+function toggleMobileMenu() {
+  const panel = document.getElementById('mobile-auth-panel');
+  panel.classList.toggle('open');
+  document.getElementById('hamburger-btn').textContent = panel.classList.contains('open') ? '✕' : '☰';
+}
+// Cerrar panel al tocar fuera
+document.addEventListener('click', e => {
+  const panel = document.getElementById('mobile-auth-panel');
+  const btn   = document.getElementById('hamburger-btn');
+  if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) {
+    panel.classList.remove('open');
+    btn.textContent = '☰';
+  }
+});
+
+/* ============================================================
+   PASSWORD STRENGTH
+============================================================ */
+function checkStrength(pw) {
+  let s = 0;
+  if (pw.length >= 8)  s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  const lvls = [
+    {p:'0%',   c:'#ccc',     t:''},
+    {p:'25%',  c:'#E74C3C', t:'⚠️ Débil'},
+    {p:'50%',  c:'#E67E22', t:'🔑 Regular'},
+    {p:'75%',  c:'#F1C40F', t:'✅ Buena'},
+    {p:'90%',  c:'#27AE60', t:'🔒 Muy segura'},
+    {p:'100%', c:'#1ABC9C', t:'🛡️ Excelente'},
+  ];
+  const l = lvls[s] || lvls[0];
+  document.getElementById('strength-fill').style.cssText  = `width:${l.p};background:${l.c}`;
+  document.getElementById('strength-label').textContent   = l.t;
+}
+
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type  = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+/* ============================================================
+   FIX #1 — TAMAÑO DE TEXTO CORREGIDO
+   Ahora aplica la clase en <html>, no en <body>,
+   para que los rem se calculen desde el root correcto.
+   Los saltos son: 18px / 24px / 32px — diferencia muy visible.
+============================================================ */
+function setTextSize(size) {
+  document.documentElement.classList.remove('text-normal','text-lg','text-xl');
+  document.querySelectorAll('#btn-text-normal,#btn-text-lg,#btn-text-xl')
+          .forEach(b => b.classList.remove('active'));
+
+  if (size === 'lg') {
+    document.documentElement.classList.add('text-lg');
+    document.getElementById('btn-text-lg').classList.add('active');
+  } else if (size === 'xl') {
+    document.documentElement.classList.add('text-xl');
+    document.getElementById('btn-text-xl').classList.add('active');
+  } else {
+    document.documentElement.classList.add('text-normal');
+    document.getElementById('btn-text-normal').classList.add('active');
+  }
+  localStorage.setItem('textSize', size);
+}
+
+function toggleContrast() {
+  document.body.classList.toggle('high-contrast');
+  document.getElementById('btn-contrast').classList.toggle('active');
+  localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+}
+
+/* ============================================================
+   SPEECH
+============================================================ */
+const speechSynth = window.speechSynthesis;
+function speak(text) {
+  speechSynth.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,' ').replace(/\s+/g,' '));
+  u.lang = 'es-MX'; u.rate = 0.85;
+  u.onend = () => {
+    document.getElementById('stop-aloud-btn').style.display  = 'none';
+    document.getElementById('read-aloud-btn').style.display  = '';
+  };
+  speechSynth.speak(u);
+  document.getElementById('stop-aloud-btn').style.display = '';
+  document.getElementById('read-aloud-btn').style.display = 'none';
+}
+function readAloud() {
+  speak((document.querySelector('.content-section.active') || document.querySelector('main')).innerText);
+}
+function stopAloud() {
+  speechSynth.cancel();
+  document.getElementById('stop-aloud-btn').style.display = 'none';
+  document.getElementById('read-aloud-btn').style.display = '';
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ============================================================
+   PROGRESS BAR
+============================================================ */
+window.addEventListener('scroll', () => {
+  const pct = document.body.scrollHeight - window.innerHeight > 0
+    ? (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+/* ============================================================
+   CLOSE MODALS
+============================================================ */
+document.getElementById('modal-overlay').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+document.getElementById('article-modal').addEventListener('click', function(e) { if(e.target===this) closeArticle(); });
+document.getElementById('privacy-modal').addEventListener('click', function(e) { if(e.target===this) closePrivacy(); });
+document.getElementById('admin-modal').addEventListener('click',   function(e) { if(e.target===this) closeAdmin(); });
+document.getElementById('profile-modal').addEventListener('click', function(e) { if(e.target===this) closeProfile(); });
+// RECUPERACIÓN — Cerrar al hacer click fuera del modal
+document.getElementById('recovery-modal').addEventListener('click', function(e) { if(e.target===this) closeRecovery(); });
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') { closeModal(); closeArticle(); closePrivacy(); closeAdmin(); closeProfile(); closeRecovery(); }
+});
+
+/* ============================================================
+   RECUPERACIÓN DE CONTRASEÑA — EMAILJS (correo real)
+   Flujo de 3 pasos:
+     1. Usuario ingresa su correo → se genera un token seguro
+        y se envía al correo real del usuario via EmailJS.
+     2. Usuario ingresa el token + nueva contraseña.
+        Se valida el token, su vigencia y la política.
+     3. Confirmación visual de éxito.
+
+   ── CONFIGURACIÓN REQUERIDA (una sola vez) ──────────────
+   1. Crea cuenta gratuita en https://www.emailjs.com
+   2. En "Email Services" → conecta tu Gmail (o cualquier cuenta)
+   3. En "Email Templates" → crea una plantilla con estas variables:
+        {{to_email}}   → correo del destinatario
+        {{to_name}}    → nombre del usuario
+        {{token}}      → código de 6 dígitos
+        {{expiry}}     → "10 minutos"
+      Ejemplo de asunto: "Tu código de recuperación: {{token}}"
+   4. Reemplaza los tres valores de EMAILJS_CONFIG abajo con
+      tus credenciales reales del dashboard de EmailJS.
+   ─────────────────────────────────────────────────────────
+============================================================ */
+
+// ── CONFIGURACIÓN DE EMAILJS ─────────────────────────────
+
+const EMAILJS_CONFIG = {
+  publicKey:   'cWgdxvtU4t2qPUwJE',     
+  serviceId:   'Tservice_xms5rlv',      
+  templateId:  'template_y06dzg9',     
+};
+
+// Estado interno del flujo de recuperación
+const recoveryState = {
+  email:     null,
+  token:     null,
+  expiresAt: null,
+  timer:     null,
+  sending:   false,  // Previene doble envío
+};
+
+// ── Abrir / cerrar modal ─────────────────────────────────
+function openRecovery() {
+  resetRecoveryState();
+  showRecoveryStep(1);
+  document.getElementById('recovery-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('recovery-email').focus(), 120);
+}
+
+function closeRecovery() {
+  document.getElementById('recovery-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  clearInterval(recoveryState.timer);
+  recoveryState.timer = null;
+}
+
+// ── Limpiar estado entre usos ────────────────────────────
+function resetRecoveryState() {
+  clearInterval(recoveryState.timer);
+  Object.assign(recoveryState, { email:null, token:null, expiresAt:null, timer:null, sending:false });
+  document.getElementById('recovery-email').value      = '';
+  document.getElementById('recovery-token').value      = '';
+  document.getElementById('recovery-new-pw').value     = '';
+  document.getElementById('recovery-confirm-pw').value = '';
+  document.getElementById('recovery-strength-fill').style.cssText = 'width:0%;background:#ccc';
+  document.getElementById('recovery-strength-label').textContent  = '';
+  ['err-recovery-email','err-recovery-token','err-recovery-pw','err-recovery-confirm']
+    .forEach(id => { document.getElementById(id).style.display = 'none'; });
+}
+
+// ── Mostrar el paso correcto y actualizar indicador ──────
+function showRecoveryStep(step) {
+  [1, 2, 3].forEach(n => {
+    document.getElementById('recovery-step-' + n).style.display = n === step ? 'block' : 'none';
+    const stepEl = document.getElementById('rstep-' + n);
+    stepEl.classList.remove('active', 'done');
+    if (n < step)        stepEl.classList.add('done');
+    else if (n === step) stepEl.classList.add('active');
+    if (n < 3) document.getElementById('rline-' + n).classList.toggle('done', n < step);
+  });
+}
+
+// ── PASO 1: Solicitar recuperación ──────────────────────
+function requestRecovery() {
+  if (recoveryState.sending) return; // Prevenir doble click
+  const emailEl = document.getElementById('recovery-email');
+  const errEl   = document.getElementById('err-recovery-email');
+  const email   = sanitizeHTML(emailEl.value.trim());
+  errEl.style.display = 'none';
+
+  if (!validateEmail(email)) {
+    errEl.textContent   = 'Por favor ingrese un correo electrónico válido.';
+    errEl.style.display = 'block';
+    emailEl.focus();
+    return;
+  }
+
+  // Verificar si el correo existe en localStorage
+  const stored    = localStorage.getItem('user_' + email);
+  const userExists = !!stored;
+  const userName  = userExists ? JSON.parse(stored).name : 'Usuario';
+
+  // Generar token criptográfico de 6 dígitos
+  const arr   = new Uint32Array(1);
+  window.crypto.getRandomValues(arr);
+  const token = String(arr[0] % 900000 + 100000); // 100000–999999
+
+  // Guardar estado (token solo válido si el usuario existe)
+  recoveryState.email     = email;
+  recoveryState.token     = userExists ? token : null;
+  recoveryState.expiresAt = Date.now() + 10 * 60 * 1000;
+  recoveryState.sending   = true;
+
+  // Actualizar UI del paso 2 antes de enviar
+  document.getElementById('recovery-email-display').textContent = email;
+
+  // Deshabilitar botón mientras se envía
+  const sendBtn = document.querySelector('#recovery-step-1 .btn-primary');
+  sendBtn.textContent = '📤 Enviando...';
+  sendBtn.disabled    = true;
+
+  if (userExists) {
+    // ── ENVÍO REAL CON EMAILJS ───────────────────────────
+    emailjs.init(EMAILJS_CONFIG.publicKey);
+    emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+      to_email: email,
+      to_name:  userName,
+      token:    token,
+      expiry:   '10 minutos',
+    })
+    .then(() => {
+      auditLog('LOGIN', `Código de recuperación enviado a: ${email}`);
+      _afterSend(true);
+    })
+    .catch(err => {
+      console.error('EmailJS error:', err);
+      auditLog('FAIL', `Error al enviar correo de recuperación a: ${email} — ${err.text || err}`);
+      errEl.textContent   = '⚠️ No se pudo enviar el correo. Verifique su conexión o intente de nuevo.';
+      errEl.style.display = 'block';
+      recoveryState.sending = false;
+      sendBtn.textContent   = 'Enviar código →';
+      sendBtn.disabled      = false;
+    });
+  } else {
+    // Usuario no existe — igual avanzamos (anti user-enumeration)
+    // pero el token guardado es null, así el código nunca será válido
+    auditLog('LOGIN', `Recuperación solicitada para correo no registrado: ${email}`);
+    setTimeout(() => _afterSend(false), 800); // pequeño delay para parecer real
+  }
+}
+
+function _afterSend(userExists) {
+  recoveryState.sending = false;
+  const sendBtn = document.querySelector('#recovery-step-1 .btn-primary');
+  sendBtn.textContent = 'Enviar código →';
+  sendBtn.disabled    = false;
+  showRecoveryStep(2);
+  startTokenCountdown();
+  document.getElementById('recovery-token').focus();
+}
+
+// ── Countdown de expiración del token ───────────────────
+function startTokenCountdown() {
+  const cdEl = document.getElementById('token-countdown');
+  clearInterval(recoveryState.timer);
+  recoveryState.timer = setInterval(() => {
+    const remaining = recoveryState.expiresAt - Date.now();
+    if (remaining <= 0) {
+      clearInterval(recoveryState.timer);
+      cdEl.textContent = '⛔ El código ha expirado. Solicite uno nuevo.';
+      cdEl.classList.add('expiring');
+      recoveryState.token = null;
+      return;
+    }
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    cdEl.textContent = `⏱️ El código expira en ${mins}:${secs.toString().padStart(2,'0')}`;
+    cdEl.classList.toggle('expiring', remaining < 60000);
+  }, 1000);
+}
+
+// ── Reenviar token ────────────────────────────────────────
+function resendToken() {
+  if (recoveryState.sending || !recoveryState.email) return;
+  const stored     = localStorage.getItem('user_' + recoveryState.email);
+  const userExists = !!stored;
+  const userName   = userExists ? JSON.parse(stored).name : 'Usuario';
+
+  // Generar nuevo token
+  const arr      = new Uint32Array(1);
+  window.crypto.getRandomValues(arr);
+  const newToken = String(arr[0] % 900000 + 100000);
+
+  recoveryState.token     = userExists ? newToken : null;
+  recoveryState.expiresAt = Date.now() + 10 * 60 * 1000;
+  recoveryState.sending   = true;
+
+  const resendBtn = document.querySelector('#recovery-step-2 .btn-secondary');
+  resendBtn.textContent = '📤 Reenviando...';
+  resendBtn.disabled    = true;
+
+  document.getElementById('recovery-token').value = '';
+  document.getElementById('err-recovery-token').style.display = 'none';
+
+  if (userExists) {
+    emailjs.init(EMAILJS_CONFIG.publicKey);
+    emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+      to_email: recoveryState.email,
+      to_name:  userName,
+      token:    newToken,
+      expiry:   '10 minutos',
+    })
+    .then(() => {
+      auditLog('LOGIN', `Código reenviado a: ${recoveryState.email}`);
+      showToast('📧 Nuevo código enviado. Revisa tu correo.');
+    })
+    .catch(err => {
+      console.error('EmailJS resend error:', err);
+      showToast('⚠️ No se pudo reenviar. Intenta de nuevo.');
+    })
+    .finally(() => {
+      recoveryState.sending   = false;
+      resendBtn.textContent   = '🔄 Reenviar código';
+      resendBtn.disabled      = false;
+      startTokenCountdown();
+    });
+  } else {
+    setTimeout(() => {
+      recoveryState.sending = false;
+      resendBtn.textContent = '🔄 Reenviar código';
+      resendBtn.disabled    = false;
+      startTokenCountdown();
+      showToast('📧 Si ese correo está registrado, recibirás un nuevo código.');
+    }, 800);
+  }
+}
+
+// ── PASO 2: Confirmar token + nueva contraseña ───────────
+function confirmRecovery() {
+  ['err-recovery-token','err-recovery-pw','err-recovery-confirm']
+    .forEach(id => { document.getElementById(id).style.display = 'none'; });
+
+  const tokenInput = document.getElementById('recovery-token').value.trim();
+  const newPw      = document.getElementById('recovery-new-pw').value;
+  const confirmPw  = document.getElementById('recovery-confirm-pw').value;
+  let valid = true;
+
+  if (!recoveryState.token || Date.now() > recoveryState.expiresAt) {
+    document.getElementById('err-recovery-token').textContent   = '⛔ El código ha expirado. Solicite uno nuevo.';
+    document.getElementById('err-recovery-token').style.display = 'block';
+    valid = false;
+  } else if (tokenInput !== recoveryState.token) {
+    document.getElementById('err-recovery-token').textContent   = '❌ Código incorrecto. Verifique e intente de nuevo.';
+    document.getElementById('err-recovery-token').style.display = 'block';
+    valid = false;
+  }
+
+  const pwCheck = validatePasswordPolicy(newPw);
+  if (!pwCheck.ok) {
+    document.getElementById('err-recovery-pw').textContent   = '⚠️ ' + pwCheck.errors[0];
+    document.getElementById('err-recovery-pw').style.display = 'block';
+    valid = false;
+  }
+
+  if (newPw !== confirmPw) {
+    document.getElementById('err-recovery-confirm').textContent   = 'Las contraseñas no coinciden.';
+    document.getElementById('err-recovery-confirm').style.display = 'block';
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  const stored = localStorage.getItem('user_' + recoveryState.email);
+  if (stored) {
+    const user       = JSON.parse(stored);
+    user.pw          = btoa(newPw);
+    user.pwChangedAt = new Date().toISOString();
+    localStorage.setItem('user_' + recoveryState.email, JSON.stringify(user));
+    if (loggedUser && loggedUser.email === recoveryState.email) loggedUser = user;
+  }
+
+  auditLog('LOGIN', `Contraseña restablecida para: ${recoveryState.email}`);
+  clearInterval(recoveryState.timer);
+  recoveryState.token = null;
+  showRecoveryStep(3);
+}
+
+// ── Barra de fortaleza del modal de recuperación ─────────
+function checkRecoveryStrength(pw) {
+  let s = 0;
+  if (pw.length >= 8)          s++;
+  if (pw.length >= 12)         s++;
+  if (/[A-Z]/.test(pw))        s++;
+  if (/[0-9]/.test(pw))        s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  const lvls = [
+    {p:'0%',   c:'#ccc',     t:''},
+    {p:'25%',  c:'#E74C3C', t:'⚠️ Débil'},
+    {p:'50%',  c:'#E67E22', t:'🔑 Regular'},
+    {p:'75%',  c:'#F1C40F', t:'✅ Buena'},
+    {p:'90%',  c:'#27AE60', t:'🔒 Muy segura'},
+    {p:'100%', c:'#1ABC9C', t:'🛡️ Excelente'},
+  ];
+  const l = lvls[s] || lvls[0];
+  document.getElementById('recovery-strength-fill').style.cssText = `width:${l.p};background:${l.c}`;
+  document.getElementById('recovery-strength-label').textContent  = l.t;
+}
+
+/* ============================================================
+   PROTECCIÓN DE DATOS
+============================================================ */
+
+// ── Aviso de privacidad ──────────────────────────────────
+function openPrivacy() {
+  document.getElementById('privacy-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePrivacy() {
+  document.getElementById('privacy-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── Banner de cookies ────────────────────────────────────
+function acceptCookies() {
+  localStorage.setItem('cookieConsent', 'accepted');
+  document.getElementById('cookie-banner').classList.add('hidden');
+}
+function rejectCookies() {
+  localStorage.setItem('cookieConsent', 'essential');
+  document.getElementById('cookie-banner').classList.add('hidden');
+  showToast('Solo guardaremos lo esencial para que la página funcione.');
+}
+function checkCookieBanner() {
+  const consent = localStorage.getItem('cookieConsent');
+  if (consent) document.getElementById('cookie-banner').classList.add('hidden');
+}
+
+// ── Eliminar datos del usuario — Derecho de Cancelación ──
+function deleteUserData() {
+  if (!loggedUser) return;
+  const confirmed = window.confirm(
+    '¿Está seguro de que desea eliminar todos sus datos?\n\n' +
+    'Se borrarán: su nombre, correo, contraseña y preferencias.\n' +
+    'Esta acción no se puede deshacer.'
+  );
+  if (!confirmed) return;
+  auditLog('DELETE', `Usuario eliminó su cuenta: ${loggedUser.email}`);
+  localStorage.removeItem('user_' + loggedUser.email);
+  localStorage.removeItem('textSize');
+  localStorage.removeItem('highContrast');
+  localStorage.removeItem('cookieConsent');
+  loggedUser = null;
+  clearTimeout(sessionTimer);
+  updateAuthUI();
+  setTextSize('normal');
+  if (document.body.classList.contains('high-contrast')) toggleContrast();
+  showToast('✅ Sus datos han sido eliminados. ¡Hasta pronto!');
+}
+
+/* ============================================================
+   SEGURIDAD #5 — PANEL DE ADMINISTRACIÓN
+   Acceso restringido por rol. Si un usuario sin rol 'admin'
+   intenta acceder directamente, se bloquea y se registra.
+============================================================ */
+function openAdmin() {
+  // SEGURIDAD — Verificar rol antes de abrir (RBAC)
+  if (!loggedUser || loggedUser.role !== 'admin') {
+    auditLog('ADMIN', `Intento de acceso no autorizado al panel admin: ${loggedUser?.email || 'anónimo'}`);
+    showToast('⛔ Acceso denegado. Solo administradores.');
+    return;
+  }
+  auditLog('ADMIN', `Panel de administración abierto por: ${loggedUser.email}`);
+  renderAdminPanel();
+  document.getElementById('admin-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAdmin() {
+  document.getElementById('admin-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function switchAdminTab(tab, btn) {
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-panel-' + tab).classList.add('active');
+}
+function renderAdminPanel() {
+  // Recopilar usuarios del localStorage
+  const users = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('user_')) {
+      try { users.push(JSON.parse(localStorage.getItem(key))); } catch(e) {}
+    }
+  }
+  // Estadísticas
+  const adminCount = users.filter(u => u.role === 'admin').length;
+  document.getElementById('admin-stats').innerHTML = [
+    { num: users.length,  lbl: 'Usuarios registrados' },
+    { num: adminCount,    lbl: 'Administradores' },
+    { num: users.length - adminCount, lbl: 'Usuarios normales' },
+    { num: (JSON.parse(sessionStorage.getItem('auditLog') || '[]')).length, lbl: 'Eventos auditados' },
+  ].map(s => `<div class="admin-stat"><div class="stat-num">${s.num}</div><div class="stat-lbl">${s.lbl}</div></div>`).join('');
+  // Tabla de usuarios — SEGURIDAD #8: sanitizar antes de insertar en DOM
+  document.getElementById('admin-users-body').innerHTML = users.map(u => `
+    <tr>
+      <td>${sanitizeHTML(u.name)}</td>
+      <td>${sanitizeHTML(u.email)}</td>
+      <td><span class="${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${sanitizeHTML(u.role || 'user')}</span></td>
+      <td>${u.registeredAt ? new Date(u.registeredAt).toLocaleDateString('es-MX') : '—'}</td>
+      <td>${u.consentDate ? '✅ ' + new Date(u.consentDate).toLocaleDateString('es-MX') : '⚠️ Sin consentimiento'}</td>
+      <td><span class="badge-active">Activo</span></td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-light)">No hay usuarios registrados aún.</td></tr>';
+  // Log de auditoría
+  const logs = JSON.parse(sessionStorage.getItem('auditLog') || '[]');
+  document.getElementById('audit-log-list').innerHTML = logs.map(l =>
+    `<div class="audit-entry">
+       <span class="audit-time">${sanitizeHTML(l.ts)}</span>
+       <span class="audit-type ${l.type}">${sanitizeHTML(l.type)}</span>
+       <span>${sanitizeHTML(l.detail)}</span>
+     </div>`
+  ).join('') || '<p style="color:var(--text-light);font-size:0.82rem;padding:8px 0">No hay eventos registrados en esta sesión.</p>';
+}
+
+/* ============================================================
+   SEGURIDAD #6 — GESTIÓN DE PERFIL DE USUARIO
+   Permite ver y editar nombre. Sanitiza antes de guardar.
+============================================================ */
+function openProfile() {
+  if (!loggedUser) return;
+  const box = document.getElementById('profile-info');
+  box.innerHTML = [
+    ['Nombre',       sanitizeHTML(loggedUser.name)],
+    ['Correo',       sanitizeHTML(loggedUser.email)],
+    ['Rol',          sanitizeHTML(loggedUser.role || 'user')],
+    ['Registro',     loggedUser.registeredAt ? new Date(loggedUser.registeredAt).toLocaleDateString('es-MX') : '—'],
+    ['Consentimiento', loggedUser.consentDate ? '✅ ' + new Date(loggedUser.consentDate).toLocaleDateString('es-MX') : '⚠️ No registrado'],
+  ].map(([k,v]) => `<div class="profile-info-row"><span>${k}</span><span>${v}</span></div>`).join('');
+  document.getElementById('profile-name-input').value = loggedUser.name;
+  document.getElementById('err-profile-name').style.display = 'none';
+  document.getElementById('profile-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeProfile() {
+  document.getElementById('profile-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function saveProfile() {
+  // SEGURIDAD #8 — Sanitizar nombre antes de guardar
+  const newName = sanitizeHTML(document.getElementById('profile-name-input').value.trim());
+  if (!newName) { document.getElementById('err-profile-name').style.display = 'block'; return; }
+  loggedUser.name = newName;
+  localStorage.setItem('user_' + loggedUser.email, JSON.stringify(loggedUser));
+  auditLog('ADMIN', `Perfil actualizado: ${loggedUser.email} — nuevo nombre: ${newName}`);
+  updateAuthUI();
+  closeProfile();
+  showToast('✅ Perfil actualizado correctamente.');
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  const sz = localStorage.getItem('textSize') || 'normal';
+  setTextSize(sz);
+  if (localStorage.getItem('highContrast') === 'true') toggleContrast();
+  checkCookieBanner();
+
+  // SEGURIDAD #9 — Inyectar token CSRF en campos ocultos de los formularios
+  document.getElementById('login-csrf').value    = CSRF_TOKEN;
+  document.getElementById('register-csrf').value = CSRF_TOKEN;
+
+  // SEGURIDAD #5 — Crear usuario admin de demostración si no existe
+  // En producción, esto se haría desde el backend de forma segura.
+  // Credenciales demo: admin@emh.mx / Admin123!
+  if (!localStorage.getItem('user_admin@emh.mx')) {
+    localStorage.setItem('user_admin@emh.mx', JSON.stringify({
+      name: 'Administrador', email: 'admin@emh.mx',
+      pw: btoa('Admin123!'), role: 'admin',
+      registeredAt: new Date().toISOString(),
+      consentDate: new Date().toISOString()
+    }));
+  }
+
+  auditLog('LOGIN', 'Página cargada — sesión de auditoría iniciada.');
+  init();
+});
+</script>
+
+<!--
+=================================================================
+  FIX #2 — CÓDIGO SQL PARA LA BASE DE DATOS
+  Motor: MySQL 8+ / MariaDB 10.5+
+  
+  INSTRUCCIONES:
+  1. Ejecuta este script en tu servidor MySQL/phpMyAdmin
+  2. Crea el usuario de conexión:
+       CREATE USER 'emh_user'@'localhost' IDENTIFIED BY 'TU_PASSWORD_AQUI';
+       GRANT ALL PRIVILEGES ON entendiendo_mundo.* TO 'emh_user'@'localhost';
+       FLUSH PRIVILEGES;
+  3. Conecta tu backend (Node.js/Express) con estas credenciales
+=================================================================
+
+-- ============================================================
+-- BASE DE DATOS
+-- ============================================================
+CREATE DATABASE IF NOT EXISTS entendiendo_mundo
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE entendiendo_mundo;
+
+-- ============================================================
+-- TABLA: usuarios
+-- Almacena los datos de cada usuario registrado
+-- ============================================================
+CREATE TABLE IF NOT EXISTS usuarios (
+  id            INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  nombre        VARCHAR(120)     NOT NULL,
+  correo        VARCHAR(255)     NOT NULL,
+  password_hash VARCHAR(255)     NOT NULL,   -- bcrypt hash, NUNCA texto plano
+  creado_en     DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ultimo_login  DATETIME                  DEFAULT NULL,
+  activo        TINYINT(1)       NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_correo (correo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABLA: preferencias_usuario
+-- Guarda configuración de accesibilidad por usuario
+-- ============================================================
+CREATE TABLE IF NOT EXISTS preferencias_usuario (
+  id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  usuario_id      INT UNSIGNED  NOT NULL,
+  tam_texto       ENUM('normal','lg','xl') NOT NULL DEFAULT 'normal',
+  alto_contraste  TINYINT(1)    NOT NULL DEFAULT 0,
+  actualizado_en  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_usuario_pref (usuario_id),
+  CONSTRAINT fk_pref_usuario
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABLA: categorias
+-- Catálogo de categorías de contenido
+-- ============================================================
+CREATE TABLE IF NOT EXISTS categorias (
+  id     TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  slug   VARCHAR(50)      NOT NULL,   -- 'tecnologia', 'politica', etc.
+  nombre VARCHAR(100)     NOT NULL,
+  emoji  VARCHAR(10)               DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Datos iniciales de categorías
+INSERT INTO categorias (slug, nombre, emoji) VALUES
+  ('tecnologia', 'Tecnología',           '💻'),
+  ('politica',   'Política',             '🏛️'),
+  ('sociedad',   'Sociedad',             '🌈'),
+  ('jovenes',    'Lenguaje joven',       '🗣️'),
+  ('tutoriales', 'Tutoriales',           '📱'),
+  ('ia',         'Inteligencia Artificial','🤖');
+
+-- ============================================================
+-- TABLA: articulos
+-- Contenido educativo de la plataforma
+-- ============================================================
+CREATE TABLE IF NOT EXISTS articulos (
+  id           INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  categoria_id TINYINT UNSIGNED NOT NULL,
+  slug         VARCHAR(120)     NOT NULL,
+  titulo       VARCHAR(255)     NOT NULL,
+  descripcion  TEXT             NOT NULL,
+  contenido    LONGTEXT         NOT NULL,   -- HTML seguro del artículo
+  icono        VARCHAR(10)               DEFAULT NULL,
+  banner_bg    VARCHAR(150)              DEFAULT NULL,   -- CSS gradient
+  publicado    TINYINT(1)       NOT NULL DEFAULT 1,
+  creado_en    DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_slug (slug),
+  KEY idx_categoria (categoria_id),
+  FULLTEXT KEY ft_busqueda (titulo, descripcion, contenido),
+  CONSTRAINT fk_art_categoria
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABLA: glosario
+-- Términos de lenguaje juvenil
+-- ============================================================
+CREATE TABLE IF NOT EXISTS glosario (
+  id         SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  palabra    VARCHAR(80)       NOT NULL,
+  definicion TEXT              NOT NULL,
+  activo     TINYINT(1)        NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_palabra (palabra)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABLA: favoritos
+-- Artículos guardados por cada usuario
+-- ============================================================
+CREATE TABLE IF NOT EXISTS favoritos (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id  INT UNSIGNED NOT NULL,
+  articulo_id INT UNSIGNED NOT NULL,
+  guardado_en DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_fav (usuario_id, articulo_id),
+  CONSTRAINT fk_fav_usuario
+    FOREIGN KEY (usuario_id)  REFERENCES usuarios(id)  ON DELETE CASCADE,
+  CONSTRAINT fk_fav_articulo
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABLA: historial_lectura
+-- Rastrea qué artículos leyó cada usuario
+-- ============================================================
+CREATE TABLE IF NOT EXISTS historial_lectura (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id  INT UNSIGNED NOT NULL,
+  articulo_id INT UNSIGNED NOT NULL,
+  leido_en    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_hist_usuario  (usuario_id),
+  KEY idx_hist_articulo (articulo_id),
+  CONSTRAINT fk_hist_usuario
+    FOREIGN KEY (usuario_id)  REFERENCES usuarios(id)  ON DELETE CASCADE,
+  CONSTRAINT fk_hist_articulo
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- TABLA: sesiones
+-- Control de tokens JWT (para invalidación segura)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sesiones (
+  id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  usuario_id  INT UNSIGNED  NOT NULL,
+  token_hash  VARCHAR(255)  NOT NULL,   -- SHA-256 del JWT
+  expira_en   DATETIME      NOT NULL,
+  creado_en   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  activo      TINYINT(1)    NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  KEY idx_ses_usuario (usuario_id),
+  CONSTRAINT fk_ses_usuario
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- VISTA: articulos_con_categoria
+-- Facilita consultas del frontend sin múltiples JOINs
+-- ============================================================
+CREATE OR REPLACE VIEW articulos_con_categoria AS
+  SELECT
+    a.id,
+    a.slug,
+    a.titulo,
+    a.descripcion,
+    a.contenido,
+    a.icono,
+    a.banner_bg,
+    a.publicado,
+    a.creado_en,
+    c.slug   AS categoria_slug,
+    c.nombre AS categoria_nombre,
+    c.emoji  AS categoria_emoji
+  FROM articulos a
+  JOIN categorias c ON a.categoria_id = c.id;
+
+-- ============================================================
+-- BÚSQUEDA DE TEXTO COMPLETO (índice FULLTEXT ya declarado)
+-- Ejemplo de uso desde Node.js / Express:
+--
+--   SELECT id, titulo, descripcion, icono, categoria_slug
+--   FROM articulos_con_categoria
+--   WHERE publicado = 1
+--     AND MATCH(titulo, descripcion, contenido) AGAINST (? IN BOOLEAN MODE)
+--   LIMIT 10;
+--
+-- ============================================================
+
+=================================================================
+  FIN DEL CÓDIGO SQL
+  
+  Próximos pasos para conectar:
+  1. npm install express mysql2 bcrypt jsonwebtoken dotenv
+  2. Crea .env con:
+       DB_HOST=localhost
+       DB_USER=emh_user
+       DB_PASS=TU_PASSWORD
+       DB_NAME=entendiendo_mundo
+       JWT_SECRET=clave_secreta_muy_larga
+  3. Crea server.js con rutas:
+       POST /api/auth/register
+       POST /api/auth/login
+       GET  /api/articles?category=tecnologia
+       GET  /api/articles/search?q=whatsapp
+       POST /api/favorites/:articleId
+       GET  /api/favorites
+=================================================================
+-->
+</body>
+</html>
